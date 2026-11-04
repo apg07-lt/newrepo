@@ -1,0 +1,2237 @@
+/* pomodoro.css
+   Pomodoro sidebar block + popup panel — loaded after style.css,
+   so these rules can freely override anything there if needed.
+   This file owns everything Pomodoro-related: colors, the
+   sidebar block, the panel, and both its normal-mode and
+   neon-mode looks. Nothing outside this file styles Pomodoro,
+   and this file doesn't touch anything outside Pomodoro. */
+
+/* ================= POMODORO BLOCK (sidebar) =================
+   Sits at the very top of the sidebar, in the same space the
+   old "+ Add Chapter" button used to occupy — sidebarSpacer
+   (right after it, in index.html/style.css) still does the
+   actual math to keep Physics/Chemistry/Maths aligned with
+   their timeline rows, so this block just needs to fit inside
+   that top strip without pushing anything else out of place.
+
+   Colors are a warm gold/yellow family throughout — kept clearly
+   distinct from the muddy olive-brown used by the Sunday task
+   bars elsewhere in the timeline. Glow stays modest at rest so
+   it doesn't dominate the sidebar, then brightens on hover or
+   while its panel is open. */
+
+.pomodoroBlock{
+    padding:14px 14px;
+    margin-bottom:20px;
+    border:2px solid #a3830a;
+    border-radius:12px;
+    background:#2e2708;
+    box-shadow:0 0 14px rgba(234,179,8,.28);
+    cursor:pointer;
+    transition:.2s;
+    overflow:hidden;
+}
+
+.pomodoroBlock:hover{
+    border-color:#eab308;
+    box-shadow:0 0 22px #eab308;
+    transform:translateY(-1px);
+}
+
+.pomodoroBlock:active{
+    transform:translateY(0) scale(.99);
+}
+
+body.pomodoroOpen .pomodoroBlock{
+    border-color:#eab308;
+    box-shadow:0 0 22px #eab308;
+}
+
+.pomodoroHeader{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+}
+
+.pomodoroBlock .subjectIcon{
+    width:30px;
+    height:30px;
+    flex-shrink:0;
+    color:#eab308;
+}
+
+.pomodoroHeader h2{
+    font-size:18px;
+    color:#fde68a;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    min-width:0;
+    transition:.2s;
+}
+
+.pomodoroTimeDisplay{
+    margin-top:12px;
+    padding:8px 10px;
+    border:2px solid #eab308;
+    border-radius:8px;
+    background:#201a02;
+    font-family:"Courier New",monospace;
+    font-weight:800;
+    font-size:24px;
+    letter-spacing:1.5px;
+    font-variant-numeric:tabular-nums;
+    color:#fde68a;
+    text-align:center;
+    white-space:nowrap;
+}
+
+.pomodoroDateDisplay{
+    margin-top:10px;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.5px;
+    color:#c9ab4a;
+    text-align:center;
+    white-space:nowrap;
+}
+
+/* ---- compact mode: scale everything down in sync with the
+   sidebar's subject cards (see body.compactMode .subject in
+   style.css) ---- */
+
+body.compactMode .pomodoroBlock{
+    padding:8px 10px;
+    margin-bottom:10px;
+}
+
+body.compactMode .pomodoroHeader h2{
+    font-size:13px;
+}
+
+body.compactMode .pomodoroBlock .subjectIcon{
+    width:20px;
+    height:20px;
+}
+
+body.compactMode .pomodoroTimeDisplay{
+    font-size:16px;
+    margin-top:8px;
+    padding:5px 6px;
+}
+
+body.compactMode .pomodoroDateDisplay{
+    font-size:10px;
+    margin-top:6px;
+}
+
+body.compactMode .subjectTimerGoalTag{
+    font-size:9px;
+}
+
+/* ================= POMODORO PANEL =================
+   Fixed panel that opens to the right of the sidebar, sized to
+   roughly match the timeline's height, inset a little from both
+   edges (24px) so it doesn't sit flush against the sidebar/
+   header like the timeline itself doesn't. While it's open,
+   #plannerArea gets blurred and inert so the panel reads as the
+   thing in focus. */
+
+body.pomodoroOpen #plannerArea{
+    filter:blur(6px);
+    pointer-events:none;
+    transition:filter .2s ease;
+}
+
+#pomodoroPanel{
+    position:fixed;
+    top:94px;
+    left:244px;
+    width:420px;
+    height:auto;
+    max-height:calc(100vh - 140px);
+    z-index:950;
+    display:flex;
+    flex-direction:column;
+    padding:16px;
+    border-radius:14px;
+    transition:.2s;
+}
+
+#pomodoroPanel.hidden{
+    display:none;
+}
+
+/* ---- close (×) button, floating just above the panel ----
+   Absolutely positioned with a negative top so it renders outside
+   the panel's own box rather than among the history/editor toggle
+   buttons inside it. A child of #pomodoroPanel, so it hides/shows
+   automatically with the panel's own .hidden class — no separate JS
+   toggling needed. Along with re-clicking the sidebar Pomodoro block,
+   this is now the only way to close the panel (clicking outside it
+   no longer does — see pomodoro.js). */
+
+.pomodoroPanelCloseBtn{
+    position:absolute;
+    top:-40px;
+    right:0;
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#1f2937;
+    border:2px solid #eab308;
+    color:#fde68a;
+    cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.45);
+    transition:background .15s ease,transform .15s ease;
+}
+
+.pomodoroPanelCloseBtn svg{
+    width:16px;
+    height:16px;
+}
+
+.pomodoroPanelCloseBtn:hover{
+    background:#eab308;
+    color:#1f2937;
+    transform:scale(1.08);
+}
+
+body.neonMode .pomodoroPanelCloseBtn{
+    background:var(--bgPlanner);
+    border-color:rgba(250,204,21,.6);
+    box-shadow:0 0 18px rgba(234,179,8,.5);
+}
+
+/* Normal-mode look: flat dark panel, solid gold border/glow —
+   matches the rest of the app's normal-mode modals/panels. */
+
+#pomodoroPanel{
+    background:#1f2937;
+    border:3px solid #eab308;
+    box-shadow:0 0 30px #eab308aa;
+}
+
+/* Neon-mode look: same identity color, but rendered the way the
+   rest of the neon theme renders everything else — background
+   swapped for the shared neon planner color, and a translucent
+   border + softer ambient glow instead of a solid, opaque one.
+   Toggling neon mode (the theme button in the header) is what
+   switches between these two — nothing Pomodoro-specific to
+   turn on separately. */
+
+body.neonMode #pomodoroPanel{
+    background:var(--bgPlanner);
+    border:2px solid rgba(250,204,21,.6);
+    box-shadow:0 0 36px rgba(234,179,8,.55);
+}
+
+/* The panel's own content (circles + subject timers / Sunday tasks)
+   is sized to always fit inside #pomodoroPanel's max-height, so this
+   stays overflow:visible on both axes — no scrollbars here. (The
+   separate history panel/log list still scrolls on its own; that's
+   unrelated and untouched.) Kept as its own rule (rather than just
+   leaving this to the default) so it's clear the "no scroll" behavior
+   here is intentional, not an oversight. */
+.pomodoroPanelBody{
+    position:relative;
+    flex:1;
+    overflow:visible;
+}
+
+/* ---- session grace popup ----
+   Shown when every subject timer has been paused while a session
+   was in progress. Floats over the circles (absolute, so it never
+   shifts the subject-timer alignment math below it) and counts
+   down; resuming any subject timer within the window cancels it
+   and the session picks back up unchanged. Sits right at the top of
+   the panel body (top:6px) rather than dropping down near the
+   circles, and its right edge is inset (right:84px) to stay clear
+   of the history/editor toggle buttons in the panel's top-right
+   corner instead of running full width underneath them. If the
+   message text needs more room than that leaves, it wraps onto a
+   second line (no white-space:nowrap here) instead of growing wider
+   into the buttons. */
+
+.pomodoroSessionGracePopup{
+    position:absolute;
+    top:6px;
+    left:0;
+    right:84px;
+    z-index:10;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    padding:10px 14px;
+    border-radius:10px;
+    background:#3f2d05;
+    border:2px solid #eab308;
+    color:#fde68a;
+    font-size:13px;
+    font-weight:600;
+    line-height:1.4;
+    text-align:center;
+    box-shadow:0 6px 20px rgba(0,0,0,.45);
+}
+
+.pomodoroSessionGracePopup.hidden{
+    display:none;
+}
+
+.pomodoroSessionGraceText{
+    flex:1;
+}
+
+.pomodoroSessionGraceCountdown{
+    font-family:"Courier New",monospace;
+    font-weight:800;
+}
+
+.pomodoroSessionGraceEndBtn{
+    flex-shrink:0;
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    border:1px solid #eab308;
+    background:transparent;
+    color:#fde68a;
+    font-size:11px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:.15s;
+}
+
+.pomodoroSessionGraceEndBtn:hover{
+    background:rgba(234,179,8,.25);
+    box-shadow:0 0 10px rgba(234,179,8,.5);
+}
+
+body.neonMode .pomodoroSessionGracePopup{
+    background:var(--bgPlanner);
+    border-color:rgba(250,204,21,.6);
+    box-shadow:0 0 24px rgba(234,179,8,.5);
+}
+
+/* ---- session complete popup ----
+   Shown once a session hits its target. A session is one-shot: it
+   doesn't loop into a new one, it just stops and sits here until a
+   subject timer is started again on purpose. Same footprint/position
+   as the grace popup (never both visible at once) but styled as a
+   success state instead of a warning. */
+
+.pomodoroSessionCompletePopup{
+    position:absolute;
+    top:6px;
+    left:0;
+    right:84px;
+    z-index:10;
+    padding:10px 14px;
+    border-radius:10px;
+    background:#052e1f;
+    border:2px solid #10b981;
+    color:#6ee7b7;
+    font-size:13px;
+    font-weight:600;
+    line-height:1.4;
+    text-align:center;
+    box-shadow:0 6px 20px rgba(0,0,0,.45);
+}
+
+.pomodoroSessionCompletePopup.hidden{
+    display:none;
+}
+
+body.neonMode .pomodoroSessionCompletePopup{
+    background:var(--bgPlanner);
+    border-color:rgba(16,185,129,.6);
+    box-shadow:0 0 24px rgba(16,185,129,.5);
+}
+
+/* ---- top progress circles ---- */
+
+/* justify-content:space-between (rather than a fixed gap) is what
+   creates the symmetry here: it distributes all the row's leftover
+   width equally between the two gaps (clock-to-clock and
+   clock-to-ratio-column), so every item sits the same distance from
+   its neighbor no matter how wide the row ends up being. */
+.pomodoroCircles{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:nowrap;
+    gap:10px;
+    margin:0 0 14px;
+    padding:4px;
+    border-radius:16px;
+}
+
+/* Running state: brighter glow on the rings themselves so it's
+   obvious the block is "live" without needing a separate label. */
+body.pomodoroRunning .pomodoroCircleFill{
+    filter:drop-shadow(0 0 8px rgba(234,179,8,.75));
+}
+
+.pomodoroCircleGroup{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    flex-shrink:0;
+    gap:6px;
+}
+
+.pomodoroCirclesDivider{
+    align-self:center;
+    width:1px;
+    height:120px;
+    flex-shrink:0;
+    background:rgba(234,179,8,.4);
+    /* Visual-only 6px nudge right. Using position:relative+left here
+       (instead of margin-left) is deliberate — a relative offset moves
+       just this element's paint position without changing the box it
+       occupies in the flex row, so nothing else in .pomodoroCircles
+       (the second clock, the ratio boxes) shifts because of it. */
+    position:relative;
+    left:6px;
+}
+
+.pomodoroCircleLabel{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    font-size:11px;
+    font-weight:600;
+    color:#fde68a;
+    text-align:center;
+    white-space:nowrap;
+}
+
+/* ---- "LIVE" badge ----
+   Sits next to the "Pomodoro session" label. The session ring is
+   always live and always today's — it isn't frozen when the history
+   calendar is browsing a past day, unlike the target ring/subject
+   rows next to it — so this stays visible no matter which day the
+   panel is otherwise showing, as a permanent reminder rather than
+   something JS toggles. */
+
+.pomodoroLiveTag{
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.4px;
+    line-height:1;
+    padding:2px 6px;
+    border-radius:5px;
+    background:#dc2626;
+    color:#fff;
+    white-space:nowrap;
+}
+
+.pomodoroCircle{
+    position:relative;
+    width:102px;
+    height:102px;
+}
+
+.pomodoroCircle svg{
+    width:100%;
+    height:100%;
+    overflow:visible;
+    transform:rotate(-90deg);
+}
+
+.pomodoroCircleTrack{
+    fill:none;
+    stroke:rgba(255,255,255,.08);
+    stroke-width:11;
+}
+
+/* Session ring track, split into two static arcs (geometry set at
+   runtime in pomodoro.js from POMODORO_SESSION_STUDY_SECONDS /
+   POMODORO_SESSION_TARGET_SECONDS, so it stays correct if that
+   split ever changes): first 5/6 = study, last 1/6 = break. */
+
+.pomodoroCircleTrackStudy{
+    fill:none;
+    stroke:rgba(255,255,255,.08);
+    stroke-width:11;
+}
+
+.pomodoroCircleTrackBreak{
+    fill:none;
+    stroke:#52525b;
+    stroke-width:11;
+}
+
+.pomodoroCircleFill{
+    fill:none;
+    stroke:#eab308;
+    stroke-width:11;
+    stroke-linecap:round;
+    transition:stroke-dashoffset .3s ease;
+}
+
+.pomodoroCircleText{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:"Courier New",monospace;
+    font-weight:800;
+    font-size:13px;
+    letter-spacing:.3px;
+    color:#fde68a;
+}
+
+body.neonMode .pomodoroCircleFill{
+    filter:drop-shadow(0 0 6px rgba(234,179,8,.6));
+}
+
+/* ---- day target completed ----
+   Once the day's total (sum of all three subject goals) has been
+   reached — today live, or a past day being viewed via the history
+   calendar — the total ring turns green, same weight/glow as its
+   normal yellow state (see .pomodoroCircleFill and
+   body.pomodoroRunning .pomodoroCircleFill above), just a different
+   stroke color. Toggled in pomodoro.js via setDayCompletedVisual().
+   Intentionally no extra halo/box-shadow here — keep it as close to
+   the ring's normal look as possible. */
+
+.pomodoroCircleFill.dayCompleted{
+    stroke:#22c55e;
+}
+
+body.pomodoroRunning .pomodoroCircleFill.dayCompleted{
+    filter:drop-shadow(0 0 8px rgba(34,197,94,.75));
+}
+
+body.neonMode .pomodoroCircleFill.dayCompleted{
+    filter:drop-shadow(0 0 6px rgba(34,197,94,.6));
+}
+
+/* ---- subject timers ---- */
+
+/* padding-top here is set at runtime by alignPomodoroSubjectTimers()
+   in pomodoro.js, so the physics row (and, following the same
+   height+gap rhythm as the sidebar, chemistry/maths after it)
+   line up with their matching sidebar subject cards. */
+.pomodoroSubjectTimers{
+    display:flex;
+    flex-direction:column;
+    gap:var(--rowGap);
+    padding-top:0;
+}
+
+.subjectTimerRow{
+    height:var(--rowHeight);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:0 12px;
+    border-radius:10px;
+}
+
+.subjectTimerInfo{
+    flex:1;
+    min-width:0;
+}
+
+.subjectTimerTimeRow{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    min-width:0;
+}
+
+.subjectTimerTime{
+    font-family:"Courier New",monospace;
+    font-weight:800;
+    font-size:18px;
+    letter-spacing:1px;
+    color:#f3f4f6;
+    font-variant-numeric:tabular-nums;
+}
+
+.subjectTimerGoalTag{
+    font-family:"Courier New",monospace;
+    font-weight:600;
+    font-size:11px;
+    color:#9ca3af;
+    white-space:nowrap;
+}
+
+/* ---- "Completed" tag ----
+   Small yellow pill, same look as .pomodoroHistoryLogRatio in the
+   history drawer — shown next to a subject's time once that
+   subject's goal has been reached (today, or a past day being
+   viewed via the history calendar; see updateSubjectDisplay() in
+   pomodoro.js). Subject rows only — the total-target ring shows
+   completion via its green color instead, see .dayCompleted below. */
+
+.subjectTimerCompletedTag{
+    font-family:inherit;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.2px;
+    line-height:1;
+    padding:2px 6px;
+    border-radius:5px;
+    border:1px solid rgba(234,179,8,.55);
+    background:rgba(234,179,8,.12);
+    color:#fde68a;
+    white-space:nowrap;
+}
+
+.subjectTimerCompletedTag.hidden{
+    display:none;
+}
+
+.subjectTimerBarTrack{
+    margin-top:6px;
+    height:6px;
+    border-radius:4px;
+    background:rgba(255,255,255,.14);
+    overflow:hidden;
+}
+
+.subjectTimerBarFill{
+    height:100%;
+    width:0%;
+    border-radius:4px;
+    transition:width .3s ease;
+}
+
+.subjectTimerRow.physics .subjectTimerBarFill{
+    background:#ef4444;
+}
+
+.subjectTimerRow.chemistry .subjectTimerBarFill{
+    background:#22c55e;
+}
+
+.subjectTimerRow.maths .subjectTimerBarFill{
+    background:#3b82f6;
+}
+
+.subjectTimerButtons{
+    display:flex;
+    gap:8px;
+    flex-shrink:0;
+}
+
+.subjectTimerBtn{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    border:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:.2s;
+    background:rgba(255,255,255,.1);
+    color:#f3f4f6;
+}
+
+.subjectTimerBtn svg{
+    width:16px;
+    height:16px;
+}
+
+.subjectTimerBtn:hover{
+    background:rgba(255,255,255,.2);
+    transform:translateY(-1px);
+}
+
+.subjectTimerBtn:active{
+    transform:translateY(0) scale(.95);
+}
+
+/* ---- Sunday combined-study tasks ----
+   Replaces .pomodoroSubjectTimers entirely on Sundays (see
+   updateSundayMode() in pomodoro.js) — Sundays are combined study
+   days, not split Physics/Chemistry/Maths, so no timers here at all.
+   Three equal square-ish boxes in a single row, warm yellow theme to
+   match the rest of the Pomodoro block's accent color. */
+
+.pomodoroSundayTasks{
+    display:flex;
+    gap:12px;
+    padding:4px 0;
+}
+
+.pomodoroSundayTasks.hidden{
+    display:none;
+}
+
+.sundayTaskBox{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    text-align:center;
+    padding:12px 8px;
+    border-radius:12px;
+    border:2px solid #eab308;
+    background:rgba(234,179,8,.14);
+    box-shadow:0 0 10px rgba(234,179,8,.2);
+    transition:.2s;
+}
+
+.sundayTaskBox:hover{
+    border-color:#fde047;
+    box-shadow:0 0 16px rgba(234,179,8,.4);
+    transform:translateY(-1px);
+}
+
+.sundayTaskBoxLabel{
+    font-size:12px;
+    font-weight:700;
+    line-height:1.25;
+    color:#fde68a;
+}
+
+/* Records each task's own accumulated time for the day, same
+   00:00:00 clock format as the subject timers (see
+   .subjectTimerTime) — kept even though Sundays are "free" so each
+   task's contribution is still visible at a glance. Updated by
+   updateSundayTaskDisplay() in pomodoro.js. */
+.sundayTaskBoxTime{
+    font-size:13px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+    color:#f3f4f6;
+}
+
+/* Buttons reuse .subjectTimerBtn/.subjectTimerStartPause/
+   .subjectTimerChapterBtn as-is (same icons, same running/
+   historyDisabled states) so they look and behave identically to the
+   subject timer rows — now full-size (34px) to match, instead of the
+   smaller 24px they used to be sized down to. */
+.sundayTaskBoxButtons{
+    display:flex;
+    gap:8px;
+}
+
+body.neonMode .sundayTaskBox{
+    box-shadow:0 0 14px rgba(234,179,8,.35);
+}
+
+/* ---- "Today's target" neon badge (every day) ----
+   Same pill treatment for the first ring's target text on every
+   day — a normal weekday's hours figure, a past day's history
+   figure, or "Free" on Sundays (see updateSundayMode() in
+   pomodoro.js, which only ever changes the TEXT, never this
+   styling). Independent of the site's purple/gold neon theme
+   toggle for its border/text colour, so it always reads the same —
+   but the glow + background tint are neon-only (see below), so a
+   non-neon session stays visually calm like the rest of the panel.
+
+   Positioned absolutely within #pomodoroTargetCircleGroup (rather
+   than sitting in the normal flex flow like the "Pomodoro session"
+   label on the second ring) so its width — which varies a lot
+   between "6h" and "Today's target : Free" — never changes how much
+   space the row around it takes up. Without this, a wide label here
+   pushes the study/break boxes on the right straight out of the
+   panel, since none of .pomodoroCircles' children are allowed to
+   shrink. #pomodoroTargetCircleGroup's padding-top reserves the
+   vertical space this used to take up in-flow, so the ring below
+   still sits where it always did. */
+
+#pomodoroTargetCircleGroup{
+    position:relative;
+    padding-top:28px;
+}
+
+#pomodoroTargetLabelWrap{
+    position:absolute;
+    top:0;
+    left:50%;
+    transform:translateX(-50%);
+    display:inline-flex;
+    white-space:nowrap;
+    padding:3px 10px;
+    border-radius:20px;
+    border:1px solid #22d3ee;
+    color:#67e8f9;
+    background:transparent;
+    z-index:2;
+}
+
+#pomodoroTargetLabelWrap #pomodoroDailyTargetLabel{
+    color:#67e8f9;
+    font-weight:800;
+}
+
+body.neonMode #pomodoroTargetLabelWrap{
+    background:rgba(34,211,238,.12);
+    box-shadow:0 0 10px rgba(34,211,238,.55);
+    text-shadow:0 0 6px rgba(34,211,238,.65);
+}
+
+.subjectTimerStartPause .iconPause{
+    display:none;
+}
+
+.subjectTimerStartPause .iconDisabled{
+    display:none;
+}
+
+.subjectTimerStartPause.running .iconPlay{
+    display:none;
+}
+
+.subjectTimerStartPause.running .iconPause{
+    display:block;
+}
+
+.subjectTimerStartPause.running{
+    background:#eab308;
+    color:#1f2937;
+}
+
+/* ---- locked state: viewing a past day via the history calendar ----
+   Swaps both the play and pause glyphs out for a plain circle and
+   blocks interaction — starting/pausing only makes sense for today,
+   a past day's row is read-only. See syncMainPanelToHistoryDate() in
+   pomodoro.js. */
+
+.subjectTimerStartPause.historyDisabled .iconPlay,
+.subjectTimerStartPause.historyDisabled .iconPause{
+    display:none;
+}
+
+.subjectTimerStartPause.historyDisabled .iconDisabled{
+    display:block;
+}
+
+.subjectTimerStartPause.historyDisabled{
+    cursor:not-allowed;
+    opacity:.5;
+}
+
+.subjectTimerStartPause.historyDisabled:hover{
+    background:rgba(255,255,255,.1);
+    transform:none;
+}
+
+/* Chapters button — same read-only treatment as Start/Pause above
+   when viewing a past day via the history calendar: chapters shown
+   here belong to the subject generally, not to that specific day. */
+
+.subjectTimerChapterBtn.historyDisabled{
+    cursor:not-allowed;
+    opacity:.5;
+}
+
+.subjectTimerChapterBtn.historyDisabled:hover{
+    background:rgba(255,255,255,.1);
+    transform:none;
+}
+
+/* ---- chapter/test-type selected indicator ----
+   Mirrors selectedChapterByKey in pomodoro.js: once something is
+   picked in a subject/task's popover, its chapter button gets a ring
+   drawn INSIDE its edge (box-shadow, not border — doesn't add to the
+   button's size) so it's visible from the front panel without
+   opening the popover. No selection = no ring at all. Weekday
+   subjects use their own color; the three Sunday task buttons (which
+   don't have individual subject colors) all share one neon-grey ring
+   instead. */
+
+.subjectTimerRow.physics .subjectTimerChapterBtn.chapterSelected{
+    box-shadow:inset 0 0 0 2px #ef4444;
+}
+
+.subjectTimerRow.chemistry .subjectTimerChapterBtn.chapterSelected{
+    box-shadow:inset 0 0 0 2px #22c55e;
+}
+
+.subjectTimerRow.maths .subjectTimerChapterBtn.chapterSelected{
+    box-shadow:inset 0 0 0 2px #3b82f6;
+}
+
+.sundayTaskBox .subjectTimerChapterBtn.chapterSelected{
+    box-shadow:inset 0 0 0 2px #d1d5db,0 0 8px rgba(209,213,219,.6);
+}
+
+/* ---- "pick a chapter/test type first" state ----
+   A timer's Start/Pause is faded and inert until something has been
+   selected in its popover — see selectedChapterByKey in pomodoro.js.
+   Left alone once the timer is actually running, so pausing an
+   in-progress session is never blocked by this. */
+
+.subjectTimerStartPause.needsChapter{
+    cursor:not-allowed;
+    opacity:.5;
+}
+
+.subjectTimerStartPause.needsChapter:hover{
+    background:rgba(255,255,255,.1);
+    transform:none;
+}
+
+/* Brief yellow pulse on Start/Pause when clicked with nothing picked
+   yet — nudges toward the popover that just opened instead of the
+   click silently doing nothing. */
+@keyframes chapterRequiredPulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(234,179,8,0); }
+    35%{ box-shadow:0 0 0 5px rgba(234,179,8,.55); }
+}
+
+.subjectTimerStartPause.chapterPulse{
+    animation:chapterRequiredPulse .55s ease;
+}
+
+/* ---- chapter locked for this session ----
+   Dashed instead of solid ring, on top of whatever chapterSelected
+   color is already applied — a quiet "this can't change right now"
+   cue on the chapters button itself. Doesn't disable the button: it
+   still opens the popover to view the pick, it just can't be changed
+   inside it (see .sessionLocked above + pomodoro.js). */
+.subjectTimerChapterBtn.chapterLocked{
+    outline:2px dashed rgba(234,179,8,.7);
+    outline-offset:2px;
+}
+
+/* ================= HISTORY TOGGLE BUTTON ================= */
+/* Small square button, top-right corner of the panel, sitting just
+   left of the editor toggle button — opens the history drawer to
+   the right of the panel. Same size/shape/theme as the editor
+   toggle button. */
+
+.pomodoroHistoryToggleBtn{
+    position:absolute;
+    top:12px;
+    right:48px;
+    width:28px;
+    height:28px;
+    border-radius:6px;
+    border:2px solid #eab308;
+    background:rgba(234,179,8,.12);
+    color:#fde68a;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:.2s;
+    z-index:5;
+}
+
+.pomodoroHistoryToggleBtn svg{
+    width:16px;
+    height:16px;
+}
+
+.pomodoroHistoryToggleBtn:hover{
+    background:rgba(234,179,8,.25);
+    box-shadow:0 0 12px rgba(234,179,8,.5);
+}
+
+.pomodoroHistoryToggleBtn.active{
+    background:#eab308;
+    color:#1f2937;
+}
+
+/* ================= EDITOR TOGGLE BUTTON ================= */
+/* Small square button, top-right corner of the panel — opens the
+   goals/ratio editor drawer above it. */
+
+.pomodoroEditorToggleBtn{
+    position:absolute;
+    top:12px;
+    right:12px;
+    width:28px;
+    height:28px;
+    border-radius:6px;
+    border:2px solid #eab308;
+    background:rgba(234,179,8,.12);
+    color:#fde68a;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:.2s;
+    z-index:5;
+}
+
+.pomodoroEditorToggleBtn svg{
+    width:16px;
+    height:16px;
+}
+
+.pomodoroEditorToggleBtn:hover{
+    background:rgba(234,179,8,.25);
+    box-shadow:0 0 12px rgba(234,179,8,.5);
+}
+
+.pomodoroEditorToggleBtn.active{
+    background:#eab308;
+    color:#1f2937;
+}
+
+/* ---- locked state: viewing a past day via the history calendar ----
+   Editing goals only makes sense for today — see
+   setGoalEditorLocked() in pomodoro.js, called from
+   syncMainPanelToHistoryDate() alongside the same lock applied to
+   the subject Start/Pause buttons. */
+
+.pomodoroEditorToggleBtn.historyDisabled{
+    opacity:.4;
+    cursor:not-allowed;
+}
+
+.pomodoroEditorToggleBtn.historyDisabled:hover{
+    background:rgba(234,179,8,.12);
+    box-shadow:none;
+}
+
+/* ================= GOALS & SESSION RATIO EDITOR =================
+   A drawer anchored to the same top/left/width as #pomodoroPanel,
+   then shifted straight up by its own height (+ a gap) via
+   translateY — so it always sits exactly above the panel no matter
+   how tall its content is, and "drops down" into place on open. */
+
+.pomodoroEditorPanel{
+    position:fixed;
+    left:244px;
+    top:94px;
+    width:420px;
+    max-height:calc(100vh - 140px);
+    overflow-y:auto;
+    z-index:960;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    padding:16px;
+    border-radius:14px;
+    background:#1f2937;
+    border:3px solid #eab308;
+    box-shadow:0 0 30px #eab308aa;
+    opacity:0;
+    transform:scale(.97);
+    pointer-events:none;
+    transition:transform .25s ease,opacity .2s ease;
+}
+
+.pomodoroEditorPanel.open{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+}
+
+body.neonMode .pomodoroEditorPanel{
+    background:var(--bgPlanner);
+    border:2px solid rgba(250,204,21,.6);
+    box-shadow:0 0 36px rgba(234,179,8,.55);
+}
+
+/* ================= HISTORY PANEL =================
+   Same size/shape/theme as #pomodoroPanel (see that rule above),
+   just anchored to sit to its right instead — left offset is the
+   main panel's left + its width + a gap matching the panel's own
+   inset from the sidebar. */
+
+.pomodoroHistoryPanel{
+    position:fixed;
+    top:94px;
+    left:688px;
+    width:420px;
+    height:calc(100vh - 140px);
+    max-height:calc(100vh - 140px);
+    z-index:960;
+    display:flex;
+    flex-direction:column;
+    padding:16px;
+    border-radius:14px;
+    background:#1f2937;
+    border:3px solid #eab308;
+    box-shadow:0 0 30px #eab308aa;
+    opacity:0;
+    transform:scale(.97);
+    pointer-events:none;
+    transition:transform .25s ease,opacity .2s ease;
+}
+
+.pomodoroHistoryPanel.open{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+}
+
+body.neonMode .pomodoroHistoryPanel{
+    background:var(--bgPlanner);
+    border:2px solid rgba(250,204,21,.6);
+    box-shadow:0 0 36px rgba(234,179,8,.55);
+}
+
+/* ---- close (×) button, floating just above the history panel ----
+   Same pattern as .pomodoroPanelCloseBtn above: a child of
+   .pomodoroHistoryPanel, absolutely positioned above its box, so it
+   inherits the panel's own open/closed opacity+pointer-events
+   instead of needing separate JS toggling. Along with re-clicking
+   the history toggle button, this is now the only way to close the
+   drawer (clicking outside it no longer does — see pomodoro.js). */
+
+.pomodoroHistoryCloseBtn{
+    position:absolute;
+    top:-40px;
+    right:0;
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#1f2937;
+    border:2px solid #eab308;
+    color:#fde68a;
+    cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.45);
+    transition:background .15s ease,transform .15s ease;
+}
+
+.pomodoroHistoryCloseBtn svg{
+    width:16px;
+    height:16px;
+}
+
+.pomodoroHistoryCloseBtn:hover{
+    background:#eab308;
+    color:#1f2937;
+    transform:scale(1.08);
+}
+
+body.neonMode .pomodoroHistoryCloseBtn{
+    background:var(--bgPlanner);
+    border-color:rgba(250,204,21,.6);
+    box-shadow:0 0 18px rgba(234,179,8,.5);
+}
+
+/* ---- summary row: date / start / end / total logs ---- */
+
+.pomodoroHistorySummary{
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.pomodoroHistorySummaryRow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.pomodoroHistoryCol{
+    flex:1;
+    min-width:0;
+}
+
+.pomodoroHistoryColDate{
+    flex:.85;
+}
+
+.pomodoroHistoryColTotal{
+    flex:1.3;
+    text-align:right;
+}
+
+.pomodoroHistorySummaryHead .pomodoroHistoryCol{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.4px;
+    text-transform:uppercase;
+    color:#fde68a;
+    opacity:.8;
+}
+
+.pomodoroHistorySummaryValues .pomodoroHistoryCol{
+    font-size:14px;
+    font-weight:600;
+    color:#f3f4f6;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+/* ---- history date picker ----
+   Sits right of the "Date" column heading (not the value below it,
+   which stays plain text) so it doesn't eat into the value row's
+   own space. The real <input type="date"> stays invisible
+   (opacity:0, off-flow) — the svg button is what's shown and
+   clicked, and just calls the input's native picker via JS so we
+   get a real OS/browser date picker without having to build one. */
+
+.pomodoroHistoryDateHeadCell{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    overflow:visible;
+}
+
+.pomodoroHistoryDateBtn{
+    flex-shrink:0;
+    width:13px;
+    height:13px;
+    padding:0;
+    border:none;
+    background:none;
+    color:#fde68a;
+    opacity:.8;
+    cursor:pointer;
+    display:inline-flex;
+    transition:opacity .15s ease,color .15s ease;
+}
+
+.pomodoroHistoryDateBtn svg{
+    width:100%;
+    height:100%;
+}
+
+.pomodoroHistoryDateBtn:hover{
+    opacity:1;
+    color:#eab308;
+}
+
+.pomodoroHistoryDateInput{
+    position:absolute;
+    width:1px;
+    height:1px;
+    opacity:0;
+    pointer-events:none;
+    /* This input stays invisible (see comment above) but its native
+       browser calendar popup — opened via showPicker() in
+       pomodoro.js — isn't ours to restyle with border-radius etc.,
+       it's OS/browser-drawn UI. color-scheme switches that popup to
+       its dark variant (which Chromium/Edge render with rounded,
+       dark-background controls already) instead of the harsh white
+       default, and accent-color tints the selected day/today
+       highlight to match the app's gold identity color, so it reads
+       as part of this theme instead of a stock white square. */
+    color-scheme:dark;
+    accent-color:#eab308;
+}
+
+.pomodoroHistorySummaryValues .pomodoroHistoryColTotal{
+    display:inline-flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:6px;
+    overflow:visible;
+}
+
+.pomodoroHistoryTotalTick{
+    display:inline-flex;
+    flex-shrink:0;
+    width:15px;
+    height:15px;
+}
+
+.pomodoroHistoryTotalTick svg{
+    width:100%;
+    height:100%;
+}
+
+.pomodoroHistoryDivider{
+    flex-shrink:0;
+    height:1px;
+    margin:14px 0;
+    background:rgba(234,179,8,.35);
+}
+
+/* ---- session log list: one "bar box" per completed session ---- */
+
+.pomodoroHistoryLogList{
+    flex:1;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(234,179,8,.5) transparent;
+}
+
+.pomodoroHistoryLogList::-webkit-scrollbar{
+    width:8px;
+}
+
+.pomodoroHistoryLogList::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.pomodoroHistoryLogList::-webkit-scrollbar-thumb{
+    background:rgba(234,179,8,.5);
+    border-radius:8px;
+    border:2px solid transparent;
+    background-clip:padding-box;
+}
+
+.pomodoroHistoryLogList::-webkit-scrollbar-thumb:hover{
+    background:rgba(234,179,8,.75);
+    background-clip:padding-box;
+}
+
+.pomodoroHistoryEmpty{
+    font-size:13px;
+    color:#9ca3af;
+    text-align:center;
+    padding:20px 0;
+}
+
+.pomodoroHistoryLogItem{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    padding:10px 14px;
+    border-radius:10px;
+    background:rgba(234,179,8,.08);
+    border:1px solid rgba(234,179,8,.35);
+    flex-shrink:0;
+
+    /* ---- scroll pop-in animation ---- */
+    /* Starts small, low and transparent; the IntersectionObserver in
+       pomodoro.js adds/removes .popIn as each item crosses in/out of
+       the log list's own scroll viewport, so it "pops up from below"
+       both scrolling down AND scrolling back up (re-plays each time
+       an item re-enters view), like a little drawer/toast animation. */
+    opacity:0;
+    transform:translateY(26px) scale(.82);
+    transition:opacity .4s cubic-bezier(.34,1.56,.64,1),
+               transform .5s cubic-bezier(.34,1.56,.64,1);
+}
+
+.pomodoroHistoryLogItem.popIn{
+    opacity:1;
+    transform:translateY(0) scale(1);
+}
+
+.pomodoroHistoryLogTopRow{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.pomodoroHistoryLogIndex{
+    font-size:12px;
+    font-weight:700;
+    color:#fde68a;
+    flex-shrink:0;
+    width:20px;
+}
+
+.pomodoroHistoryLogTime{
+    font-size:13px;
+    font-weight:600;
+    color:#f3f4f6;
+    flex:1;
+    min-width:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.pomodoroHistoryLogRatio{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.2px;
+    flex-shrink:0;
+    line-height:1;
+    padding:3px 6px;
+    border-radius:5px;
+    border:1px solid rgba(234,179,8,.55);
+    background:rgba(234,179,8,.12);
+    color:#fde68a;
+}
+
+.pomodoroHistoryLogStatus{
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.2px;
+    flex-shrink:0;
+    line-height:1;
+    padding:3px 6px;
+    border-radius:5px;
+    border:1px solid transparent;
+}
+
+.pomodoroHistoryLogStatus.completed{
+    color:#6ee7b7;
+    border-color:rgba(16,185,129,.55);
+    background:rgba(16,185,129,.12);
+}
+
+.pomodoroHistoryLogStatus.incomplete{
+    color:#fca5a5;
+    border-color:rgba(239,68,68,.55);
+    background:rgba(239,68,68,.12);
+}
+
+/* ---- per-subject breakdown, below the time/ratio row ---- */
+
+.pomodoroHistoryLogSubjects{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding-top:8px;
+    border-top:1px solid rgba(234,179,8,.18);
+}
+
+.pomodoroHistoryLogSubjectRow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.pomodoroHistoryLogSubjectDot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    flex-shrink:0;
+}
+
+.pomodoroHistoryLogSubjectDot.physics{
+    background:#ef4444;
+}
+
+.pomodoroHistoryLogSubjectDot.chemistry{
+    background:#22c55e;
+}
+
+.pomodoroHistoryLogSubjectDot.maths{
+    background:#3b82f6;
+}
+
+/* Sunday task boxes (Mock Test / Bookmark Questions / Revision) log
+   into the same session-history breakdown rows as the weekday
+   subjects, but always with this one neon-blue dot instead of a
+   per-subject colour — they aren't chapters/subjects, so they don't
+   get a subject colour. See renderHistorySubjectRow() in
+   pomodoro.js. */
+.pomodoroHistoryLogSubjectDot.sundayTaskDot{
+    background:#22d3ee;
+    box-shadow:0 0 6px rgba(34,211,238,.8);
+}
+
+.pomodoroHistoryLogSubjectName{
+    font-size:13px;
+    font-weight:700;
+    color:#f3f4f6;
+    flex:0 0 auto;
+    max-width:38%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+/* Chapter/test-type worked on during that subject's stretch of the
+   session — sits between the subject name and its time, centered in
+   whatever space is left between them. Deliberately lighter/thinner
+   than .pomodoroHistoryLogSubjectName so the two read as clearly
+   different things at a glance. Empty (older, pre-chapter-tracking
+   entries) just leaves that middle gap blank. */
+.pomodoroHistoryLogSubjectChapter{
+    font-size:11.5px;
+    font-weight:400;
+    color:#9ca3af;
+    flex:1 1 auto;
+    min-width:0;
+    text-align:center;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    padding:0 6px;
+}
+
+.pomodoroHistoryLogSubjectTime{
+    font-size:11px;
+    font-weight:600;
+    color:#9ca3af;
+    flex-shrink:0;
+}
+
+.pomodoroHistoryLogSubjectExtra{
+    display:none;
+}
+
+.pomodoroHistoryLogItem.expanded .pomodoroHistoryLogSubjectExtra{
+    display:flex;
+}
+
+.pomodoroHistoryLogMoreBtn{
+    align-self:flex-start;
+    font-size:11px;
+    font-weight:600;
+    color:#9ca3af;
+    opacity:.75;
+    background:none;
+    border:none;
+    padding:0;
+    margin:0;
+    cursor:pointer;
+    transition:opacity .15s ease;
+}
+
+.pomodoroHistoryLogMoreBtn:hover{
+    opacity:1;
+    text-decoration:underline;
+}
+
+.editorSectionTitle{
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.4px;
+    text-transform:uppercase;
+    color:#fde68a;
+    margin-bottom:10px;
+}
+
+/* ---- Subject goals, faded out on Sundays ----
+   Sundays are combined free-study days with no per-subject goal to
+   hit (see updateSundayMode() in pomodoro.js) — so this section is
+   faded and made non-interactive on Sundays, while the Session
+   ratio section right below it (not affected by this class) stays
+   fully usable every day, Sunday included. */
+.editorSection.editorSectionDisabled{
+    opacity:.45;
+    pointer-events:none;
+}
+
+.editorSubjectGoalRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 10px;
+    border-radius:8px;
+    background:rgba(255,255,255,.04);
+    margin-bottom:8px;
+    /* Colored border only, no glow — this row already sits inside
+       the editor drawer's own gold glow, so a per-row box-shadow on
+       top of that just looked messy. border-color is set per-subject
+       below. !important on box-shadow/filter because the bare
+       .physics/.chemistry/.maths classes (shared with the sidebar
+       cards elsewhere in the app) carry their own glow that would
+       otherwise win regardless of selector order here. */
+    border:1px solid transparent;
+    box-shadow:none !important;
+    filter:none !important;
+}
+
+.editorSubjectGoalRow:last-child{
+    margin-bottom:0;
+}
+
+.editorSubjectGoalRow.physics{
+    border-color:rgba(239,68,68,.4);
+    box-shadow:none !important;
+    filter:none !important;
+}
+
+.editorSubjectGoalRow.chemistry{
+    border-color:rgba(34,197,94,.4);
+    box-shadow:none !important;
+    filter:none !important;
+}
+
+.editorSubjectGoalRow.maths{
+    border-color:rgba(59,130,246,.4);
+    box-shadow:none !important;
+    filter:none !important;
+}
+
+.editorSubjectGoalLabel{
+    font-size:13px;
+    font-weight:600;
+    color:#f3f4f6;
+}
+
+.editorSubjectGoalRow.physics .editorSubjectGoalLabel{
+    color:#fca5a5;
+}
+
+.editorSubjectGoalRow.chemistry .editorSubjectGoalLabel{
+    color:#86efac;
+}
+
+.editorSubjectGoalRow.maths .editorSubjectGoalLabel{
+    color:#93c5fd;
+}
+
+.editorGoalInputs{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.editorGoalInput{
+    width:48px;
+    padding:5px 6px;
+    border-radius:6px;
+    border:1px solid rgba(255,255,255,.18);
+    background:#111827;
+    color:#f3f4f6;
+    font-family:"Courier New",monospace;
+    font-weight:700;
+    text-align:center;
+}
+
+.editorGoalUnit{
+    font-size:12px;
+    color:#9ca3af;
+}
+
+.editorSessionRatioInputs{
+    display:flex;
+    align-items:flex-end;
+    gap:10px;
+}
+
+.editorRatioField{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+
+.editorRatioFieldLabel{
+    font-size:11px;
+    font-weight:600;
+    color:#c9ab4a;
+}
+
+.editorRatioField input{
+    width:64px;
+    padding:6px 8px;
+    border-radius:6px;
+    border:1px solid rgba(255,255,255,.18);
+    background:#111827;
+    color:#f3f4f6;
+    font-family:"Courier New",monospace;
+    font-weight:700;
+    text-align:center;
+}
+
+.editorRatioColon{
+    font-size:18px;
+    font-weight:800;
+    color:#fde68a;
+    padding-bottom:8px;
+}
+
+.pomodoroEditorSaveBtn{
+    align-self:flex-end;
+    padding:8px 16px;
+    border-radius:8px;
+    border:none;
+    background:#eab308;
+    color:#1f2937;
+    font-weight:700;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.pomodoroEditorSaveBtn:hover{
+    background:#facc15;
+    box-shadow:0 0 14px rgba(234,179,8,.6);
+}
+
+.pomodoroEditorSaveBtn:active{
+    transform:scale(.97);
+}
+
+/* ================= SESSION RATIO DISPLAY =================
+   Read-only reflection of the saved study:break split. Lives inside
+   .pomodoroCircles, to the right of the two clocks, instead of in
+   its own row below them — keeps the panel shorter so the subject
+   timers below don't get pushed out of alignment with the sidebar's
+   subject cards. margin-top clears both the circle labels above it
+   and the absolutely-positioned edit button in the panel's top-right
+   corner, so the boxes line up with (and don't overlap) either.
+   Horizontal position comes from the parent's
+   justify-content:space-between, not a margin here, so its distance
+   from the second clock matches the distance between the two
+   clocks. Kept narrower (96px, down from its original 112px) so
+   that gap has more room to breathe — with less width taken up on
+   this side, the space-between layout naturally gives the target
+   badge above the first clock (which overflows its own 102px
+   circle when the label text is long) more clearance before the
+   divider/second clock, without needing a margin hack anywhere. */
+.pomodoroSessionRatioDisplay{
+    display:flex;
+    flex-direction:column;
+    flex:0 0 auto;
+    width:96px;
+    min-width:0;
+    height:88px;
+    margin-top:32px;
+    /* the edit button sits at right:12px from the panel's padding
+       box, 4px closer to the border than this column's normal
+       right edge (which lands at the content edge, 16px padding) —
+       this nudges it right by that same 4px so the two line up. */
+    position:relative;
+    right:-4px;
+    gap:5px;
+}
+
+.pomodoroSessionRatioBlock{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:4px;
+    min-width:0;
+    padding:4px 6px;
+    border-radius:9px;
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    transition:border-color .25s ease,box-shadow .25s ease;
+}
+
+/* glows in the same identity yellow as the rest of the block while
+   that half of the session (study, then break) is the one actually
+   running — set by JS via updateSessionPhaseVisuals() */
+.pomodoroSessionRatioBlock.phaseActive{
+    border-color:#eab308;
+    box-shadow:0 0 16px rgba(234,179,8,.5);
+}
+
+.pomodoroSessionRatioText{
+    display:flex;
+    flex-direction:column;
+    text-align:left;
+    min-width:0;
+}
+
+.pomodoroSessionRatioLabel{
+    display:block;
+    font-size:9px;
+    font-weight:600;
+    letter-spacing:.3px;
+    text-transform:uppercase;
+    color:#9ca3af;
+    margin-bottom:2px;
+}
+
+.pomodoroSessionRatioValue{
+    display:block;
+    font-size:11px;
+    font-weight:700;
+    color:#f3f4f6;
+}
+
+.pomodoroSessionRatioBlock.study .pomodoroSessionRatioValue{
+    color:#fde68a;
+}
+
+.pomodoroSessionRatioBlock.break .pomodoroSessionRatioValue{
+    color:#d1d5db;
+}
+
+/* ---- study/break ticking icon ----
+   Line-art pair (pen+mouse for study, mug-with/without-steam for
+   break) sat on the right half of each box. Three states, toggled
+   by JS via updateSessionPhaseVisuals():
+     .hiddenIcon  — no session running at all: not shown
+     .idleGrey    — the OTHER half of the session is currently
+                    running: single resting frame (frameA), faded grey
+     .activeGlow + .ticking — this half is running: frameA/frameB
+                    hard-swap every .5s (1 full cycle/sec), glowing
+                    yellow like the rest of the identity color */
+
+.pomodoroRatioIcon{
+    position:relative;
+    width:18px;
+    height:18px;
+    flex-shrink:0;
+    color:#9ca3af;
+    opacity:0;
+    visibility:hidden;
+    transition:opacity .2s ease,color .2s ease;
+}
+
+.pomodoroRatioIcon.hiddenIcon{
+    opacity:0;
+    visibility:hidden;
+}
+
+.pomodoroRatioIcon.idleGrey{
+    opacity:.55;
+    visibility:visible;
+    color:#9ca3af;
+    filter:none;
+}
+
+.pomodoroRatioIcon.activeGlow{
+    opacity:1;
+    visibility:visible;
+    color:#eab308;
+    filter:drop-shadow(0 0 6px rgba(234,179,8,.8));
+}
+
+.ratioIconFrame{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    stroke:currentColor;
+    fill:none;
+}
+
+.ratioIconFrame.frameB{
+    opacity:0;
+}
+
+/* only ticks (hard cut, not a fade — steps(1,end)) while running its
+   own phase; idle/hidden states just show frameA via the rule above */
+.pomodoroRatioIcon.ticking .frameA{
+    animation:pomodoroRatioTickA 1s steps(1,end) infinite;
+}
+
+.pomodoroRatioIcon.ticking .frameB{
+    animation:pomodoroRatioTickB 1s steps(1,end) infinite;
+}
+
+@keyframes pomodoroRatioTickA{
+    0%,49.99%{opacity:1;}
+    50%,100%{opacity:0;}
+}
+
+@keyframes pomodoroRatioTickB{
+    0%,49.99%{opacity:0;}
+    50%,100%{opacity:1;}
+}
+
+/* ================= NEON MODE (sidebar block) ================= */
+
+body.neonMode .pomodoroBlock{
+    border-color:rgba(163,131,10,.5);
+    box-shadow:0 0 14px rgba(234,179,8,.22);
+}
+
+body.neonMode .pomodoroBlock:hover,
+body.neonMode.pomodoroOpen .pomodoroBlock{
+    border-color:#facc15;
+    box-shadow:0 0 28px #eab308;
+}
+
+/* ================= SUBJECT CHAPTER LIST POPOVER =================
+   Small floating list opened via a subject timer row's "chapters"
+   button (beside Start/Pause). Shows that subject's chapters from
+   the main timeline. position:fixed and positioned via JS, kept
+   outside #pomodoroPanel so it isn't clipped by that panel's
+   overflow-y:auto. */
+
+.subjectChapterPopover{
+    position:fixed;
+    width:230px;
+    max-height:260px;
+    z-index:970;
+    display:flex;
+    flex-direction:column;
+    background:#1f2937;
+    border:2px solid #4b5563;
+    border-radius:10px;
+    box-shadow:0 8px 24px rgba(0,0,0,.5);
+    padding:10px;
+    gap:8px;
+}
+
+.subjectChapterPopover.hidden{
+    display:none;
+}
+
+/* Background/glow tracks the same theme toggle as #pomodoroPanel —
+   solid dark grey normally, swapped for the shared neon planner
+   purple + gold glow in neon mode. Border stays subject-tinted in
+   both modes (see below), unlike the panel's own gold border. */
+
+body.neonMode .subjectChapterPopover{
+    background:var(--bgPlanner);
+    box-shadow:0 0 24px rgba(234,179,8,.4);
+}
+
+.subjectChapterPopoverHeader{
+    flex-shrink:0;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.3px;
+    color:#f3f4f6;
+    text-transform:uppercase;
+    padding-bottom:6px;
+    border-bottom:1px solid rgba(255,255,255,.12);
+}
+
+.subjectChapterPopoverList{
+    flex:1;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    scrollbar-width:thin;
+}
+
+.subjectChapterPopoverEmpty{
+    font-size:12px;
+    color:#9ca3af;
+    padding:6px 2px;
+}
+
+/* ---- "chapter locked for this session" note ----
+   Shown in place of/above the list once the open key has already
+   started a timer this session — see pomodoroSessionLockedChapterKeys
+   in pomodoro.js. The list underneath stays visible (so what was
+   picked is still visible) but goes inert — see .sessionLocked below. */
+
+.subjectChapterPopoverLockNote{
+    flex-shrink:0;
+    font-size:11px;
+    line-height:1.35;
+    color:#fde68a;
+    background:rgba(234,179,8,.12);
+    border:1px solid rgba(234,179,8,.4);
+    border-radius:6px;
+    padding:6px 8px;
+}
+
+.subjectChapterPopoverLockNote.hidden{
+    display:none;
+}
+
+@keyframes chapterLockNotePulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(234,179,8,0); }
+    35%{ box-shadow:0 0 0 4px rgba(234,179,8,.5); }
+}
+
+.subjectChapterPopoverLockNote.lockNotePulse{
+    animation:chapterLockNotePulse .55s ease;
+}
+
+/* Dims the list and shows a not-allowed cursor once the open key is
+   locked — a visual echo of the click handler's guard in pomodoro.js,
+   which still blocks the change even if this were ever bypassed. */
+.subjectChapterPopover.sessionLocked .subjectChapterPopoverList{
+    opacity:.55;
+    cursor:not-allowed;
+}
+
+/* ---- chapter search bar ----
+   Sits inside #subjectChapterPopoverList itself: right at the top
+   for the plain weekday subject lists, or just below the yellow
+   "Combined" box for the Bookmark Questions/Revision lists (see
+   SUBJECT_CHAPTER_SEARCH_HTML + renderSubjectChapterList()/
+   renderCombinedChapterList() in pomodoro.js). Only the
+   #subjectChapterPopoverItems div below it gets re-rendered while
+   typing, so the input itself never loses focus. Not used by the
+   Mock Test popover, which stays a fixed 3-option list. */
+
+.subjectChapterPopoverSearchWrap{
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:7px;
+    padding:6px 8px;
+    transition:border-color .15s ease;
+}
+
+.subjectChapterPopoverSearchIcon{
+    width:14px;
+    height:14px;
+    color:#9ca3af;
+    flex-shrink:0;
+}
+
+.subjectChapterPopoverSearchInput{
+    flex:1;
+    min-width:0;
+    background:transparent;
+    border:none;
+    outline:none;
+    font-size:12px;
+    font-family:inherit;
+    color:#f3f4f6;
+}
+
+.subjectChapterPopoverSearchInput::placeholder{
+    color:#6b7280;
+}
+
+.subjectChapterPopover.physics .subjectChapterPopoverSearchWrap:focus-within{
+    border-color:#ef4444;
+}
+.subjectChapterPopover.chemistry .subjectChapterPopoverSearchWrap:focus-within{
+    border-color:#22c55e;
+}
+.subjectChapterPopover.maths .subjectChapterPopoverSearchWrap:focus-within{
+    border-color:#3b82f6;
+}
+.subjectChapterPopover.sundayPopover .subjectChapterPopoverSearchWrap:focus-within{
+    border-color:#22d3ee;
+}
+
+/* Holds the actual (filtered) chapter rows — its own flex/gap since
+   it's now a nested child of .subjectChapterPopoverList rather than
+   the rows sitting directly inside it. */
+#subjectChapterPopoverItems{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.subjectChapterPopoverItem{
+    padding:7px 8px;
+    border-radius:7px;
+    background:rgba(255,255,255,.06);
+    font-size:13px;
+    color:#e5e7eb;
+    transition:background .15s ease,box-shadow .15s ease;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+}
+
+.subjectChapterPopoverItem:hover{
+    background:rgba(255,255,255,.12);
+}
+
+/* ---- selected chapter/test type ----
+   Clicking a row (see the delegated click listener in pomodoro.js)
+   marks it as this popover's current selection: a yellow tick at the
+   row's right edge, plus a light yellow tint so the choice still
+   reads clearly even before the tick catches the eye. Exactly one
+   row per popover carries this at a time. */
+
+.subjectChapterPopoverItem.selected{
+    background:rgba(234,179,8,.16);
+    box-shadow:inset 0 0 0 1px rgba(234,179,8,.55);
+}
+
+.subjectChapterPopoverItem.selected:hover{
+    background:rgba(234,179,8,.22);
+}
+
+.subjectChapterPopoverItemTick{
+    display:none;
+    margin-left:auto;
+    flex-shrink:0;
+    width:15px;
+    height:15px;
+    color:#eab308;
+}
+
+.subjectChapterPopoverItem.selected .subjectChapterPopoverItemTick{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.subjectChapterPopoverItemTick svg{
+    width:100%;
+    height:100%;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2.6;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+/* ---- read-only "studied that day" chapter row ----
+   Used by the history view opened from a chapters button while a
+   past day is selected (see openHistoryChapterPopover() in
+   pomodoro.js) — plain name + recorded time, nothing to click/select,
+   so the pointer cursor and hover tint are dropped. */
+
+.subjectChapterPopoverItem.historyItem{
+    cursor:default;
+    justify-content:space-between;
+}
+
+.subjectChapterPopoverItem.historyItem:hover{
+    background:rgba(255,255,255,.06);
+}
+
+.subjectChapterPopoverItemTime{
+    flex-shrink:0;
+    font-size:12px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+    color:#d1d5db;
+    margin-left:auto;
+}
+
+/* Fixed "Combined" entry prefixed onto the Bookmark Questions/
+   Revision lists (see COMBINED_CHAPTER_OPTION_HTML in pomodoro.js) —
+   yellow-highlighted, bolder and larger than a regular chapter row so
+   it reads as a distinct option rather than just another chapter. */
+.subjectChapterPopoverItem.combinedChapterItem{
+    border:2px solid #eab308;
+    background:rgba(234,179,8,.14);
+    padding:8px 10px;
+}
+
+.subjectChapterPopoverItem.combinedChapterItem:hover{
+    background:rgba(234,179,8,.22);
+}
+
+.subjectChapterPopoverItemName.combinedChapterName{
+    font-size:14px;
+    font-weight:800;
+    color:#fde68a;
+}
+
+/* Subject-tinted border, matching that subject's own color used
+   elsewhere (sidebar cards, timer bars) instead of a plain grey box */
+
+.subjectChapterPopover.physics{
+    border-color:#ef4444;
+}
+.subjectChapterPopover.chemistry{
+    border-color:#22c55e;
+}
+.subjectChapterPopover.maths{
+    border-color:#3b82f6;
+}
+
+/* Bookmark Questions / Revision (combined all-subjects list) and
+   Mock Test (fixed 3-option list) share this one neon-blue tint
+   instead of a single subject's color, since neither belongs to just
+   one subject. See openSubjectChapterPopover() in pomodoro.js. */
+.subjectChapterPopover.sundayPopover{
+    border-color:#22d3ee;
+}
+
+/* Scrollbar tinted to match the subject too, instead of a plain
+   white/grey system scrollbar */
+
+.subjectChapterPopover.physics .subjectChapterPopoverList{
+    scrollbar-color:#ef4444 transparent;
+}
+.subjectChapterPopover.chemistry .subjectChapterPopoverList{
+    scrollbar-color:#22c55e transparent;
+}
+.subjectChapterPopover.maths .subjectChapterPopoverList{
+    scrollbar-color:#3b82f6 transparent;
+}
+
+.subjectChapterPopover.sundayPopover .subjectChapterPopoverList{
+    scrollbar-color:#22d3ee transparent;
+}
+
+.subjectChapterPopoverList::-webkit-scrollbar{
+    width:8px;
+}
+
+.subjectChapterPopoverList::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.subjectChapterPopoverList::-webkit-scrollbar-thumb{
+    border-radius:8px;
+    border:2px solid transparent;
+    background-clip:padding-box;
+}
+
+.subjectChapterPopover.physics .subjectChapterPopoverList::-webkit-scrollbar-thumb{
+    background:rgba(239,68,68,.6);
+    background-clip:padding-box;
+}
+
+.subjectChapterPopover.chemistry .subjectChapterPopoverList::-webkit-scrollbar-thumb{
+    background:rgba(34,197,94,.6);
+    background-clip:padding-box;
+}
+
+.subjectChapterPopover.maths .subjectChapterPopoverList::-webkit-scrollbar-thumb{
+    background:rgba(59,130,246,.6);
+    background-clip:padding-box;
+}
+
+.subjectChapterPopover.sundayPopover .subjectChapterPopoverList::-webkit-scrollbar-thumb{
+    background:rgba(34,211,238,.6);
+    background-clip:padding-box;
+}
+
+/* ---- today's chapter, highlighted ----
+   Whichever chapter (if any) covers today's date on the main
+   timeline gets its name lightly tinted with the subject's own
+   color, so it's immediately obvious which one is "today's chapter"
+   without leaving the popover. See getStudyPositions()/
+   getTodayPlannerDay() in script.js — same day-range logic the main
+   timeline itself is drawn with, Sundays skipped included. */
+
+.subjectChapterPopoverItemName{
+    display:inline-block;
+    border-radius:5px;
+}
+
+/* Small subject-coloured dot on each row of the combined
+   Bookmark Questions/Revision chapter list — the only visual cue for
+   which subject a chapter belongs to once physics/chemistry/maths
+   are merged into one list. Not used by the single-subject popovers
+   (physics/chemistry/maths chapter buttons) or the Mock Test list. */
+.subjectChapterPopoverItemDot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    flex-shrink:0;
+}
+
+.subjectChapterPopoverItemDot.physics{
+    background:#ef4444;
+}
+.subjectChapterPopoverItemDot.chemistry{
+    background:#22c55e;
+}
+.subjectChapterPopoverItemDot.maths{
+    background:#3b82f6;
+}
+
+.subjectChapterPopoverItemName.todayChapter{
+    padding:2px 6px;
+    margin:-2px -6px;
+}
+
+.subjectChapterPopover.physics .subjectChapterPopoverItemName.todayChapter{
+    background:rgba(239,68,68,.25);
+}
+
+.subjectChapterPopover.chemistry .subjectChapterPopoverItemName.todayChapter{
+    background:rgba(34,197,94,.25);
+}
+
+.subjectChapterPopover.maths .subjectChapterPopoverItemName.todayChapter{
+    background:rgba(59,130,246,.25);
+}
+
+/* Same today-highlight colors as above, but not scoped to a
+   subject-tinted popover container — needed for the combined
+   Bookmark Questions/Revision list, whose container is tinted
+   .sundayPopover (neon blue) rather than any one subject, so each
+   row carries its OWN subject class instead (see
+   renderCombinedChapterList() in pomodoro.js). */
+.subjectChapterPopoverItemName.todayChapter.physics{
+    background:rgba(239,68,68,.25);
+}
+
+.subjectChapterPopoverItemName.todayChapter.chemistry{
+    background:rgba(34,197,94,.25);
+}
+
+.subjectChapterPopoverItemName.todayChapter.maths{
+    background:rgba(59,130,246,.25);
+}

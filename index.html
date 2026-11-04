@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Study Planner</title>
+
+    <link rel="stylesheet"
+          href="style.css">
+
+    <link rel="stylesheet"
+          href="pomodoro.css">
+
+    <link rel="stylesheet"
+          href="quickAccess.css">
+
+</head>
+
+<body>
+
+    
+    <!-- ========================= -->
+    <!-- TOP HEADER -->
+    <!-- ========================= -->
+
+    <header id="topHeader">
+
+        <div class="titleArea">
+
+            <h1>Study Planner</h1>
+
+            <p>
+                140 Day Chapter Planner
+            </p>
+
+        </div>
+
+        <div class="headerButtons">
+
+            <!-- Bare line-drawing target icon — floats directly on the
+                 header, no button box. Styling/behavior lives entirely
+                 in quickAccess.css / quickAccess.js. -->
+            <button id="quickTargetBtn" class="qaTargetBtn" type="button" aria-label="Target" title="Target">
+                <svg class="qaTargetIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.6"/>
+                    <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/>
+                    <circle cx="12" cy="12" r="1.1" fill="currentColor"/>
+                    <line x1="12" y1="1" x2="12" y2="4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    <line x1="12" y1="20" x2="12" y2="23" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    <line x1="1" y1="12" x2="4" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    <line x1="20" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+            </button>
+
+            <button id="addChapterBtn">
+
+                + Add Chapter
+
+            </button>
+
+            <button id="toggleChecksBtn">
+
+                Hide Checkboxes
+
+            </button>
+
+            <button id="todayBtn">
+
+                Today
+
+            </button>
+
+            <button id="zoomOutBtn">
+
+                −
+
+            </button>
+
+            <span id="zoomPercent">
+
+                100%
+
+            </span>
+
+            <button id="zoomInBtn">
+
+                +
+
+            </button>
+
+            <button id="wallpaperBtn" class="iconToggleBtn" title="Wallpaper" type="button" aria-pressed="true">
+                🖼
+            </button>
+
+            <button id="neonBtn" class="iconToggleBtn" title="Neon Theme" type="button" aria-pressed="false">
+                ◆
+            </button>
+
+            <div class="settingsWrap">
+
+                <button id="settingsBtn" class="iconToggleBtn" title="Settings" type="button" aria-haspopup="true" aria-expanded="false">
+                    ⚙
+                </button>
+
+                <div id="settingsPanel" class="settingsPanel hidden">
+
+                    <button id="dateRangeBtn" class="settingsPanelItem" type="button">
+                        <span class="settingsPanelIcon">🗓</span>
+                        Timeline Range
+                    </button>
+
+                    <button id="exportBtn" class="settingsPanelItem" type="button">
+                        <span class="settingsPanelIcon">⬆</span>
+                        Export Data
+                    </button>
+
+                    <button id="importBtn" class="settingsPanelItem" type="button">
+                        <span class="settingsPanelIcon">⬇</span>
+                        Import Data
+                    </button>
+
+                    <div class="settingsPanelDivider"></div>
+
+                    <button id="resetBtn" class="settingsPanelItem settingsPanelItemDanger" type="button">
+                        <span class="settingsPanelIcon">🗑</span>
+                        Reset Data
+                    </button>
+
+                </div>
+
+            </div>
+
+            <input id="importFileInput" type="file" accept="application/json,.json" class="hidden">
+
+        </div>
+
+    </header>
+
+
+    <!-- ========================= -->
+    <!-- MAIN LAYOUT -->
+    <!-- ========================= -->
+
+    <main id="mainContainer">
+
+
+        <!-- ========================= -->
+        <!-- LEFT SIDEBAR -->
+        <!-- ========================= -->
+
+<aside id="leftSidebar">
+
+    <!-- ========================= -->
+    <!-- POMODORO -->
+    <!-- ========================= -->
+
+    <div id="pomodoroBlock" class="pomodoroBlock" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
+
+        <div class="pomodoroHeader">
+
+            <svg class="subjectIcon pomodoroIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12.5" r="8.5" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M12 8v5l3.2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 2.5h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+
+            <h2>Pomodoro</h2>
+
+        </div>
+
+        <div id="pomodoroTimeDisplay" class="pomodoroTimeDisplay">
+            00:00:00
+        </div>
+
+        <div id="pomodoroDateDisplay" class="pomodoroDateDisplay">
+        </div>
+
+    </div>
+
+    <div id="sidebarSpacer"></div>
+
+    <div class="subject physics">
+
+        <svg class="subjectIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2.5c2.8 1.9 4.5 5.1 4.5 8.8 0 2.4-.7 4.6-2 6.4l-1 3.1a1.5 1.5 0 0 1-2.86 0l-1-3.1c-1.3-1.8-2-4-2-6.4 0-3.7 1.7-6.9 4.5-8.8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <circle cx="12" cy="10.5" r="1.8" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M8.5 15.5l-2.3 1.2c-.5.3-.8.8-.8 1.4v1.9l2.5-1.4M15.5 15.5l2.3 1.2c.5.3.8.8.8 1.4v1.9l-2.5-1.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+
+        <div class="subjectText">
+
+            <h2>Physics</h2>
+
+            <p>
+                Missed :
+                <span id="physicsMissed">0</span>
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="subject chemistry">
+
+        <svg class="subjectIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 2.5h4M10.5 3v6.2c0 .35-.1.7-.3 1L5.9 16.7c-1 1.5.1 3.5 1.9 3.5h8.4c1.8 0 2.9-2 1.9-3.5l-4.3-6.5c-.2-.3-.3-.65-.3-1V3" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M8.2 14.5h7.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            <circle cx="13.2" cy="17" r=".9" fill="currentColor"/>
+            <circle cx="10.7" cy="18.3" r=".6" fill="currentColor"/>
+        </svg>
+
+        <div class="subjectText">
+
+            <h2>Chemistry</h2>
+
+            <p>
+                Missed :
+                <span id="chemistryMissed">0</span>
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="subject maths">
+
+        <svg class="subjectIcon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 4v16h14L5 4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M5 8h2.2M5 12h2.6M5 16h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+
+        <div class="subjectText">
+
+            <h2>Maths</h2>
+
+            <p>
+                Missed :
+                <span id="mathsMissed">0</span>
+            </p>
+
+        </div>
+
+    </div>
+
+</aside>
+
+
+
+        <!-- ========================= -->
+        <!-- RIGHT SIDE -->
+        <!-- ========================= -->
+
+        <section id="plannerArea">
+
+            <div id="timelineWrapper">
+
+                <div id="timeline">
+                    <!-- Month Header -->
+                    <div id="monthHeader"></div>
+
+                    <!-- Date Numbers -->
+                    <div id="dateHeader"></div>
+
+                    <!-- Weekday Row -->
+                    <div id="weekdayHeader"></div>
+
+                    <!-- Sunday Tasks -->
+                    <div id="sundayRow"></div>
+
+                    <!-- Subject Rows -->
+                    <div id="physicsRow"
+                         class="subjectRow">
+
+                    </div>
+
+                    <div id="chemistryRow"
+                         class="subjectRow">
+
+                    </div>
+
+                    <div id="mathsRow"
+                         class="subjectRow">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- ========================= -->
+    <!-- RESERVED SPACE — kept blank on purpose so the page
+         has room to scroll vertically for future features -->
+    <!-- ========================= -->
+
+    <div id="futureSpace"></div>
+
+<!-- ================================= -->
+<!-- EDIT CHAPTER MODAL -->
+<!-- ================================= -->
+
+<div id="editModal" class="modal hidden">
+
+    <div class="modalContent editModalContent">
+
+        <h2>Edit Chapter</h2>
+
+        <div class="editFormGrid">
+
+            <div class="editFormCol">
+
+                <label>Chapter Name</label>
+
+                <input
+                    id="editChapterName"
+                    type="text"
+                    placeholder="Example : Kinematics">
+
+                <label>Subject</label>
+
+                <select id="editChapterSubject">
+
+                    <option value="physics">Physics</option>
+
+                    <option value="chemistry">Chemistry</option>
+
+                    <option value="maths">Maths</option>
+
+                </select>
+
+                <label>Start Date</label>
+
+                <input
+                    id="editChapterStartDate"
+                    type="date"
+                    min="2026-01-01"
+                    max="2027-12-31">
+
+                <label>Duration (Study Days)</label>
+
+                <input
+                    id="editChapterDuration"
+                    type="number"
+                    min="1">
+
+            </div>
+
+            <div class="editFormCol">
+
+                <label>Priority Shade</label>
+
+                <select id="editChapterShade">
+
+                    <option value="0">Light</option>
+
+                    <option value="1">Normal</option>
+
+                    <option value="2">Dark</option>
+
+                </select>
+
+                <label>Chapter Levels</label>
+
+                <div class="levelInputsRow">
+
+                    <div class="levelInputGroup">
+
+                        <span class="levelDot theoryDot"></span>
+
+                        <input id="editTheoryDays" type="number" min="0" value="0">
+
+                        <label for="editTheoryDays">Theory</label>
+
+                    </div>
+
+                    <div class="levelInputGroup">
+
+                        <span class="levelDot mainsDot"></span>
+
+                        <input id="editMainsDays" type="number" min="0" value="0">
+
+                        <label for="editMainsDays">Mains</label>
+
+                    </div>
+
+                    <div class="levelInputGroup">
+
+                        <span class="levelDot advanceDot"></span>
+
+                        <input id="editAdvanceDays" type="number" min="0" value="0">
+
+                        <label for="editAdvanceDays">Advance</label>
+
+                    </div>
+
+                </div>
+
+                <div id="editLevelsPreview" class="levelsPreview"></div>
+
+            </div>
+
+        </div>
+
+        <p class="editFormHint">Levels should sum up to Duration.</p>
+
+        <div class="editModalButtons">
+
+            <button id="cancelEditChapter" type="button">Cancel</button>
+
+            <button id="saveEditChapter" type="button">Save Changes</button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================================= -->
+<!-- TIMELINE RANGE MODAL -->
+<!-- ================================= -->
+
+<div id="dateRangeModal" class="modal hidden">
+
+    <div class="modalContent" id="dateRangeModalContent">
+
+        <h2>Timeline Range</h2>
+
+        <label>Start Date</label>
+
+        <input
+            id="rangeStartDate"
+            type="date">
+
+        <label>End Date</label>
+
+        <input
+            id="rangeEndDate"
+            type="date">
+
+        <p class="editFormHint" id="rangeHint">Choose the first and last day of the planner.</p>
+
+        <div class="editModalButtons">
+
+            <button id="cancelDateRange" type="button">Cancel</button>
+
+            <button id="saveDateRange" type="button">Save</button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================================= -->
+<!-- EXPORT DATA MODAL -->
+<!-- ================================= -->
+
+<div id="exportModal" class="modal hidden">
+
+    <div class="modalContent" id="exportModalContent">
+
+        <h2>Export Data</h2>
+
+        <p class="editFormHint">
+            This downloads a backup file (.json) containing all your chapters, checkboxes data, and settings. You can use this file to restore your data on another PC or browser.
+        </p>
+
+        <div class="editModalButtons">
+
+            <button id="cancelExport" type="button">Cancel</button>
+
+            <button id="confirmExport" type="button">Export</button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================================= -->
+<!-- IMPORT DATA MODAL -->
+<!-- ================================= -->
+
+<div id="importModal" class="modal hidden">
+
+    <div class="modalContent" id="importModalContent">
+
+        <h2>Import Data</h2>
+
+        <p class="editFormHint" id="importHint">
+            This will overwrite your current data with the contents of the selected file. This cannot be undone.
+        </p>
+
+        <div class="editModalButtons">
+
+            <button id="cancelImport" type="button">Cancel</button>
+
+            <button id="confirmImport" type="button">Import</button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================================= -->
+<!-- RESET DATA MODAL -->
+<!-- ================================= -->
+
+<div id="resetModal" class="modal hidden">
+
+    <div class="modalContent" id="resetModalContent">
+
+        <h2>Reset Data</h2>
+
+        <p class="editFormHint">
+            This permanently deletes all chapters, checkboxes data, and settings stored in this browser. This action can't be undone. If you want a copy first, export your data before resetting.
+        </p>
+
+        <div class="editModalButtons">
+
+            <button id="cancelReset" type="button">Cancel</button>
+
+            <button id="confirmReset" type="button" class="holdToConfirmBtn">
+
+                <span class="holdToConfirmFill" id="resetHoldFill"></span>
+
+                <span class="holdToConfirmLabel">Hold to Delete</span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================================= -->
+<!-- POMODORO PANEL -->
+<!-- ================================= -->
+
+<div id="pomodoroPanel" class="pomodoroPanel hidden">
+
+    <!-- Floats just above the panel's own box (negative top offset,
+         see .pomodoroPanelCloseBtn in pomodoro.css) rather than
+         sitting among the in-panel controls — the only way (besides
+         re-clicking the sidebar Pomodoro block) to close the panel,
+         now that clicking outside it no longer does. -->
+    <button type="button" id="pomodoroPanelCloseBtn" class="pomodoroPanelCloseBtn"
+            aria-label="Close Pomodoro panel" title="Close">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+    </button>
+
+    <button type="button" id="pomodoroHistoryToggleBtn" class="pomodoroHistoryToggleBtn"
+            aria-haspopup="true" aria-expanded="false"
+            aria-label="View history" title="History">
+
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 8a7 7 0 1 1 1.5 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M4 4v4h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 8v5l3 1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+
+    </button>
+
+    <button type="button" id="pomodoroEditorToggleBtn" class="pomodoroEditorToggleBtn"
+            aria-haspopup="true" aria-expanded="false"
+            aria-label="Edit goals and session ratio" title="Edit goals & session ratio">
+
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 6h10M17 6h3M4 12h3M9 12h11M4 18h13M20 18h1"
+                  stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="14" cy="6" r="2" fill="currentColor"/>
+            <circle cx="6" cy="12" r="2" fill="currentColor"/>
+            <circle cx="16" cy="18" r="2" fill="currentColor"/>
+        </svg>
+
+    </button>
+
+    <!-- ===== GOALS & SESSION RATIO EDITOR ===== -->
+    <!-- Anchored via CSS to sit directly above this panel (see
+         #pomodoroEditorPanel in pomodoro.css); slides into view
+         when the square button above is clicked. Nested inside
+         #pomodoroPanel so the existing outside-click handler for
+         the main panel already treats clicks in here as "inside". -->
+
+    <div id="pomodoroEditorPanel" class="pomodoroEditorPanel" role="dialog" aria-label="Edit goals and session ratio">
+
+        <div class="editorSection" id="editorSubjectGoalsSection">
+
+            <div class="editorSectionTitle">Subject goals</div>
+
+            <div class="editorSubjectGoalRow physics">
+                <span class="editorSubjectGoalLabel">Physics</span>
+                <div class="editorGoalInputs">
+                    <input type="number" min="0" inputmode="numeric" class="editorGoalInput" id="physicsGoalHoursInput" aria-label="Physics goal hours"><span class="editorGoalUnit">h</span>
+                    <input type="number" min="0" max="59" inputmode="numeric" class="editorGoalInput" id="physicsGoalMinutesInput" aria-label="Physics goal minutes"><span class="editorGoalUnit">m</span>
+                </div>
+            </div>
+
+            <div class="editorSubjectGoalRow chemistry">
+                <span class="editorSubjectGoalLabel">Chemistry</span>
+                <div class="editorGoalInputs">
+                    <input type="number" min="0" inputmode="numeric" class="editorGoalInput" id="chemistryGoalHoursInput" aria-label="Chemistry goal hours"><span class="editorGoalUnit">h</span>
+                    <input type="number" min="0" max="59" inputmode="numeric" class="editorGoalInput" id="chemistryGoalMinutesInput" aria-label="Chemistry goal minutes"><span class="editorGoalUnit">m</span>
+                </div>
+            </div>
+
+            <div class="editorSubjectGoalRow maths">
+                <span class="editorSubjectGoalLabel">Maths</span>
+                <div class="editorGoalInputs">
+                    <input type="number" min="0" inputmode="numeric" class="editorGoalInput" id="mathsGoalHoursInput" aria-label="Maths goal hours"><span class="editorGoalUnit">h</span>
+                    <input type="number" min="0" max="59" inputmode="numeric" class="editorGoalInput" id="mathsGoalMinutesInput" aria-label="Maths goal minutes"><span class="editorGoalUnit">m</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="editorSection">
+
+            <div class="editorSectionTitle">Session ratio (minutes)</div>
+
+            <div class="editorSessionRatioInputs">
+
+                <label class="editorRatioField">
+                    <span class="editorRatioFieldLabel">Study</span>
+                    <input type="number" min="1" inputmode="numeric" id="editorSessionStudyInput">
+                </label>
+
+                <span class="editorRatioColon">:</span>
+
+                <label class="editorRatioField">
+                    <span class="editorRatioFieldLabel">Break</span>
+                    <input type="number" min="0" inputmode="numeric" id="editorSessionBreakInput">
+                </label>
+
+            </div>
+
+        </div>
+
+        <button type="button" id="pomodoroEditorSaveBtn" class="pomodoroEditorSaveBtn">Save</button>
+
+    </div>
+
+    <!-- ===== HISTORY PANEL ===== -->
+    <!-- Anchored via CSS to sit to the right of #pomodoroPanel, same
+         size/shape/theme as the panel itself; slides into view when
+         the square history button above is clicked. Nested inside
+         #pomodoroPanel so the existing outside-click handler for the
+         main panel already treats clicks in here as "inside". -->
+
+    <div id="pomodoroHistoryPanel" class="pomodoroHistoryPanel" role="dialog" aria-label="History">
+
+        <!-- Same floating-above-the-box pattern as
+             #pomodoroPanelCloseBtn — the only way (besides re-clicking
+             the history toggle button above) to close this drawer,
+             now that clicking outside it no longer does. -->
+        <button type="button" id="pomodoroHistoryCloseBtn" class="pomodoroHistoryCloseBtn"
+                aria-label="Close history" title="Close">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+
+        <div class="pomodoroHistorySummary">
+
+            <div class="pomodoroHistorySummaryRow pomodoroHistorySummaryHead">
+                <span class="pomodoroHistoryCol pomodoroHistoryColDate pomodoroHistoryDateHeadCell">
+                    Date
+                    <button type="button" id="pomodoroHistoryDateBtn" class="pomodoroHistoryDateBtn" aria-label="Pick a date" title="Pick a date">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3.5" y="5" width="17" height="15" rx="2.5" stroke="currentColor" stroke-width="1.6"/>
+                            <path d="M3.5 9.5h17M8 3v3.6M16 3v3.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                    <input type="date" id="pomodoroHistoryDateInput" class="pomodoroHistoryDateInput">
+                </span>
+                <span class="pomodoroHistoryCol pomodoroHistoryColStart">Start</span>
+                <span class="pomodoroHistoryCol pomodoroHistoryColEnd">End</span>
+                <span class="pomodoroHistoryCol pomodoroHistoryColTotal">Total logs</span>
+            </div>
+
+            <div class="pomodoroHistorySummaryRow pomodoroHistorySummaryValues">
+                <span class="pomodoroHistoryCol pomodoroHistoryColDate" id="pomodoroHistoryDateValue">—</span>
+                <span class="pomodoroHistoryCol pomodoroHistoryColStart" id="pomodoroHistoryStartValue">—</span>
+                <span class="pomodoroHistoryCol pomodoroHistoryColEnd" id="pomodoroHistoryEndValue">—</span>
+                <span class="pomodoroHistoryCol pomodoroHistoryColTotal" id="pomodoroHistoryTotalValue">0 sessions completed</span>
+            </div>
+
+        </div>
+
+        <div class="pomodoroHistoryDivider"></div>
+
+        <div id="pomodoroHistoryLogList" class="pomodoroHistoryLogList">
+        </div>
+
+    </div>
+
+    <div class="pomodoroPanelBody">
+
+        <!-- ===== TOP PROGRESS CIRCLES ===== -->
+        <!-- Circle 1: today's total (persisted, shared with the
+             sidebar block) against a daily target. Circle 2: this
+             session only (resets on page load) against a single
+             Pomodoro length. There's no separate Start/Pause button
+             anymore — the whole circles block is the control: click
+             it (or Space/Enter) to start/pause both. -->
+
+        <div id="pomodoroSessionGracePopup" class="pomodoroSessionGracePopup hidden" role="status" aria-live="polite">
+
+            <span class="pomodoroSessionGraceText">
+                Session will reset in <span id="pomodoroSessionGraceCountdown" class="pomodoroSessionGraceCountdown">30</span>s if not resumed
+            </span>
+
+            <button type="button" id="pomodoroSessionGraceEndBtn" class="pomodoroSessionGraceEndBtn" aria-label="End session now" title="End session now">
+                ✕
+            </button>
+
+        </div>
+
+        <div id="pomodoroSessionCompletePopup" class="pomodoroSessionCompletePopup hidden" role="status" aria-live="polite">
+            Congrats, session completed 🎉
+        </div>
+
+        <div id="pomodoroCircles" class="pomodoroCircles">
+
+            <div class="pomodoroCircleGroup" id="pomodoroTargetCircleGroup">
+
+                <div class="pomodoroCircleLabel" id="pomodoroTargetLabelWrap">
+                    <span id="pomodoroDailyTargetPrefix">Today's target</span>: <span id="pomodoroDailyTargetLabel">6h</span>
+                </div>
+
+                <div class="pomodoroCircle">
+
+                    <svg viewBox="0 0 120 120">
+                        <circle class="pomodoroCircleTrack" cx="60" cy="60" r="52"/>
+                        <circle class="pomodoroCircleFill" id="pomodoroTotalRing" cx="60" cy="60" r="52"/>
+                    </svg>
+
+                    <div class="pomodoroCircleText" id="pomodoroTotalCircleText">00:00:00</div>
+
+                </div>
+
+            </div>
+            <div class="pomodoroCirclesDivider"></div>
+
+            <div class="pomodoroCircleGroup">
+
+                <div class="pomodoroCircleLabel">
+                    Pomodoro session
+                    <span class="pomodoroLiveTag">LIVE</span>
+                </div>
+
+                <div class="pomodoroCircle">
+
+                    <svg viewBox="0 0 120 120">
+                        <circle class="pomodoroCircleTrackStudy" id="pomodoroSessionTrackStudy" cx="60" cy="60" r="52"/>
+                        <circle class="pomodoroCircleTrackBreak" id="pomodoroSessionTrackBreak" cx="60" cy="60" r="52"/>
+                        <circle class="pomodoroCircleFill" id="pomodoroSessionRing" cx="60" cy="60" r="52"/>
+                    </svg>
+
+                    <div class="pomodoroCircleText" id="pomodoroSessionCircleText">00:00:00</div>
+
+                </div>
+
+            </div>
+
+            <!-- ===== SESSION RATIO DISPLAY ===== -->
+            <!-- Read-only reflection of the study:break split set in the
+                 editor above — updates the moment it's saved. Lives
+                 beside the two clocks (not below them) so it doesn't add
+                 extra height above the subject timers, which would push
+                 them out of alignment with the sidebar's subject cards. -->
+
+            <div class="pomodoroSessionRatioDisplay">
+
+            <div class="pomodoroSessionRatioBlock study" id="pomodoroStudyRatioBlock">
+
+                <div class="pomodoroSessionRatioText">
+                    <span class="pomodoroSessionRatioLabel">Study</span>
+                    <span class="pomodoroSessionRatioValue" id="pomodoroSessionRatioStudyValue">50 minutes</span>
+                </div>
+
+                <!-- pen (frameA, also the idle/break-phase resting frame) +
+                     mouse (frameB) — alternate every .5s while studying -->
+                <div class="pomodoroRatioIcon hiddenIcon" id="pomodoroStudyRatioIcon">
+
+                    <svg class="ratioIconFrame frameA" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 20l1.2-4.2L15.8 5.2a1.7 1.7 0 0 1 2.4 0l.6.6a1.7 1.7 0 0 1 0 2.4L8.2 18.8 4 20z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+                        <path d="M14.3 6.7l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+
+                    <svg class="ratioIconFrame frameB" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3.2c-2.9 0-5 2.3-5 5.2v7.2c0 2.9 2.1 5.2 5 5.2s5-2.3 5-5.2V8.4c0-2.9-2.1-5.2-5-5.2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                        <path d="M12 3.2v6.8" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M12 7.4v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+
+                </div>
+
+            </div>
+
+            <div class="pomodoroSessionRatioBlock break" id="pomodoroBreakRatioBlock">
+
+                <div class="pomodoroSessionRatioText">
+                    <span class="pomodoroSessionRatioLabel">Break</span>
+                    <span class="pomodoroSessionRatioValue" id="pomodoroSessionRatioBreakValue">10 minutes</span>
+                </div>
+
+                <!-- mug, no steam (frameA, also the idle/study-phase resting
+                     frame) + mug with steam (frameB) — alternate every .5s
+                     while on break -->
+                <div class="pomodoroRatioIcon hiddenIcon" id="pomodoroBreakRatioIcon">
+
+                    <svg class="ratioIconFrame frameA" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                        <path d="M16 9.6h1.4a2.4 2.4 0 0 1 0 4.8H16" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M4 21h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+
+                    <svg class="ratioIconFrame frameB" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                        <path d="M16 9.6h1.4a2.4 2.4 0 0 1 0 4.8H16" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M4 21h13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        <path d="M8.3 6c0-1 1-1 1-2s-1-1-1-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                        <path d="M11.7 6c0-1 1-1 1-2s-1-1-1-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+                    </svg>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        </div>
+
+        <!-- ===== SUBJECT TIMERS ===== -->
+        <!-- One row per subject, same order/colors as the sidebar
+             cards. Each has its own Start/Pause (independent of the
+             panel's own timer above) plus a chapter button that
+             doesn't do anything yet. -->
+
+        <div class="pomodoroSubjectTimers">
+
+            <div class="subjectTimerRow physics">
+
+                <div class="subjectTimerInfo">
+
+                    <div class="subjectTimerTimeRow">
+                        <div class="subjectTimerTime" id="physicsTimerDisplay">00:00:00</div>
+                        <span class="subjectTimerGoalTag" id="physicsGoalTag">(TG- 02:00)</span>
+                        <span class="subjectTimerCompletedTag hidden" id="physicsCompletedTag">Completed</span>
+                    </div>
+
+                    <div class="subjectTimerBarTrack">
+                        <div class="subjectTimerBarFill" id="physicsTimerBarFill"></div>
+                    </div>
+
+                </div>
+
+                <div class="subjectTimerButtons">
+
+                    <button type="button" class="subjectTimerBtn subjectTimerStartPause" id="physicsStartPauseBtn" aria-label="Start Physics timer">
+
+                        <svg class="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg class="iconPause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+                        <svg class="iconDisabled" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+
+                    </button>
+
+                    <button type="button" class="subjectTimerBtn subjectTimerChapterBtn" id="physicsChapterBtn" aria-label="Physics chapters" title="View Physics chapters">
+
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 4h9a3 3 0 0 1 3 3v13H9a3 3 0 0 1-3-3V4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M6 4v13a3 3 0 0 0 3 3h9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M9 8h6M9 11h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                        </svg>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="subjectTimerRow chemistry">
+
+                <div class="subjectTimerInfo">
+
+                    <div class="subjectTimerTimeRow">
+                        <div class="subjectTimerTime" id="chemistryTimerDisplay">00:00:00</div>
+                        <span class="subjectTimerGoalTag" id="chemistryGoalTag">(TG- 02:00)</span>
+                        <span class="subjectTimerCompletedTag hidden" id="chemistryCompletedTag">Completed</span>
+                    </div>
+
+                    <div class="subjectTimerBarTrack">
+                        <div class="subjectTimerBarFill" id="chemistryTimerBarFill"></div>
+                    </div>
+
+                </div>
+
+                <div class="subjectTimerButtons">
+
+                    <button type="button" class="subjectTimerBtn subjectTimerStartPause" id="chemistryStartPauseBtn" aria-label="Start Chemistry timer">
+
+                        <svg class="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg class="iconPause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+                        <svg class="iconDisabled" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+
+                    </button>
+
+                    <button type="button" class="subjectTimerBtn subjectTimerChapterBtn" id="chemistryChapterBtn" aria-label="Chemistry chapters" title="View Chemistry chapters">
+
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 4h9a3 3 0 0 1 3 3v13H9a3 3 0 0 1-3-3V4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M6 4v13a3 3 0 0 0 3 3h9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M9 8h6M9 11h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                        </svg>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="subjectTimerRow maths">
+
+                <div class="subjectTimerInfo">
+
+                    <div class="subjectTimerTimeRow">
+                        <div class="subjectTimerTime" id="mathsTimerDisplay">00:00:00</div>
+                        <span class="subjectTimerGoalTag" id="mathsGoalTag">(TG- 02:00)</span>
+                        <span class="subjectTimerCompletedTag hidden" id="mathsCompletedTag">Completed</span>
+                    </div>
+
+                    <div class="subjectTimerBarTrack">
+                        <div class="subjectTimerBarFill" id="mathsTimerBarFill"></div>
+                    </div>
+
+                </div>
+
+                <div class="subjectTimerButtons">
+
+                    <button type="button" class="subjectTimerBtn subjectTimerStartPause" id="mathsStartPauseBtn" aria-label="Start Maths timer">
+
+                        <svg class="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg class="iconPause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+                        <svg class="iconDisabled" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+
+                    </button>
+
+                    <button type="button" class="subjectTimerBtn subjectTimerChapterBtn" id="mathsChapterBtn" aria-label="Maths chapters" title="View Maths chapters">
+
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 4h9a3 3 0 0 1 3 3v13H9a3 3 0 0 1-3-3V4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M6 4v13a3 3 0 0 0 3 3h9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M9 8h6M9 11h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                        </svg>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ===== SUNDAY COMBINED STUDY TASKS ===== -->
+        <!-- Shown INSTEAD of .pomodoroSubjectTimers above whenever the
+             viewed day (today live, or a past day picked in the
+             history calendar) is a Sunday — Sundays are combined
+             study days, not split Physics/Chemistry/Maths. Purely a
+             static label row, no timers/tracking attached. Visibility
+             is toggled in JS by updateSundayMode(), called from
+             updatePomodoroCircles() (today) and
+             syncMainPanelToHistoryDate() (history browsing). -->
+
+        <div id="pomodoroSundayTasks" class="pomodoroSundayTasks hidden">
+
+            <div class="sundayTaskBox">
+                <span class="sundayTaskBoxLabel">Mock Test</span>
+
+                <div class="sundayTaskBoxTime" id="mockTestTimerDisplay">00:00:00</div>
+
+                <div class="sundayTaskBoxButtons">
+
+                    <button type="button" class="subjectTimerBtn subjectTimerStartPause" id="mockTestStartPauseBtn" aria-label="Start Mock Test timer">
+                        <svg class="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg class="iconPause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+                        <svg class="iconDisabled" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+                    </button>
+
+                    <!-- chapter-style button — placeholder only, content/behavior TBD -->
+                    <button type="button" class="subjectTimerBtn subjectTimerChapterBtn" id="mockTestChapterBtn" aria-label="Mock Test chapters">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 4h9a3 3 0 0 1 3 3v13H9a3 3 0 0 1-3-3V4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M6 4v13a3 3 0 0 0 3 3h9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M9 8h6M9 11h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="sundayTaskBox">
+                <span class="sundayTaskBoxLabel">Bookmark Questions</span>
+
+                <div class="sundayTaskBoxTime" id="bookmarkTimerDisplay">00:00:00</div>
+
+                <div class="sundayTaskBoxButtons">
+
+                    <button type="button" class="subjectTimerBtn subjectTimerStartPause" id="bookmarkStartPauseBtn" aria-label="Start Bookmark Questions timer">
+                        <svg class="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg class="iconPause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+                        <svg class="iconDisabled" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+                    </button>
+
+                    <!-- chapter-style button — placeholder only, content/behavior TBD -->
+                    <button type="button" class="subjectTimerBtn subjectTimerChapterBtn" id="bookmarkChapterBtn" aria-label="Bookmark Questions chapters">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 4h9a3 3 0 0 1 3 3v13H9a3 3 0 0 1-3-3V4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M6 4v13a3 3 0 0 0 3 3h9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M9 8h6M9 11h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="sundayTaskBox">
+                <span class="sundayTaskBoxLabel">Revision</span>
+
+                <div class="sundayTaskBoxTime" id="revisionTimerDisplay">00:00:00</div>
+
+                <div class="sundayTaskBoxButtons">
+
+                    <button type="button" class="subjectTimerBtn subjectTimerStartPause" id="revisionStartPauseBtn" aria-label="Start Revision timer">
+                        <svg class="iconPlay" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <svg class="iconPause" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+                        <svg class="iconDisabled" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+                    </button>
+
+                    <!-- chapter-style button — placeholder only, content/behavior TBD -->
+                    <button type="button" class="subjectTimerBtn subjectTimerChapterBtn" id="revisionChapterBtn" aria-label="Revision chapters">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 4h9a3 3 0 0 1 3 3v13H9a3 3 0 0 1-3-3V4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M6 4v13a3 3 0 0 0 3 3h9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M9 8h6M9 11h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+    <!-- ================================= -->
+    <!-- CHAPTER DETAILS PANEL -->
+    <!-- ================================= -->
+
+    <section id="chapterPanel" class="hidden">
+
+    <div class="chapterTopBar">
+
+        <div>
+
+            <h2 id="chapterTitle">
+                No Chapter Selected
+            </h2>
+
+            <span id="panelSubject">
+                Physics
+            </span>
+
+        </div>
+
+        <div class="chapterButtons">
+
+            <button id="editChapterBtn">
+                Edit
+            </button>
+
+            <button id="deleteChapterBtn">
+                Delete
+            </button>
+
+            <button id="closePanel">
+                ✕
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="chapterBody" id="chapterBody">
+
+        <div class="chapterLeft">
+
+            <h3>Description</h3>
+
+            <div id="chapterDescription"
+                 class="editableBox"
+                 contenteditable="true"
+                 spellcheck="false"
+                 data-placeholder="Click here to write a description...">
+
+            </div>
+
+        </div>
+
+        <div class="colResizer" id="colResizerLeft" title="Drag to resize"></div>
+
+        <div class="chapterCenter">
+
+            <h3>
+
+                Chapter Timeline
+
+            </h3>
+
+            <div id="miniTimelineWrap">
+
+                <button id="miniScrollLeft" class="miniScrollBtn miniScrollBtnLeft hidden" type="button" aria-label="Scroll timeline left">
+                    <svg viewBox="0 0 16 16"><path d="M10 4L5 8L10 12"/></svg>
+                </button>
+
+                <div id="chapterMiniTimeline">
+
+                </div>
+
+                <button id="miniScrollRight" class="miniScrollBtn miniScrollBtnRight hidden" type="button" aria-label="Scroll timeline right">
+                    <svg viewBox="0 0 16 16"><path d="M6 4L11 8L6 12"/></svg>
+                </button>
+
+            </div>
+
+            <div id="chapterLevelsSummary">
+
+                <span class="levelSummaryHeading">Level Days</span>
+
+                <span class="levelSummaryItem">
+                    <span class="levelDot theoryDot"></span>
+                    Theory: <b id="theoryCount">0</b>
+                </span>
+
+                <span class="levelSummaryItem">
+                    <span class="levelDot mainsDot"></span>
+                    Mains: <b id="mainsCount">0</b>
+                </span>
+
+                <span class="levelSummaryItem">
+                    <span class="levelDot advanceDot"></span>
+                    Advance: <b id="advanceCount">0</b>
+                </span>
+
+            </div>
+
+            <div id="chapterSummary">
+
+    <div class="summaryCard completedCard">
+
+        <div class="summaryNumber" id="completedCount">
+
+            0
+
+        </div>
+
+        <div class="summaryLabel">
+
+            Completed
+
+        </div>
+
+    </div>
+
+    <div class="summaryCard leftCard">
+
+        <div class="summaryNumber" id="leftCount">
+
+            0
+
+        </div>
+
+        <div class="summaryLabel">
+
+            Left
+
+        </div>
+
+    </div>
+
+</div>
+
+        </div>
+
+        <div class="colResizer" id="colResizerRight" title="Drag to resize"></div>
+
+        <div class="chapterRight">
+
+            <h3>
+
+                Additional Notes
+
+            </h3>
+
+            <div id="chapterNotes"
+                 class="editableBox"
+                 contenteditable="true"
+                 spellcheck="false"
+                 data-placeholder="Click here to write additional notes...">
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+    <!-- ========================= -->
+<!-- ADD CHAPTER POPUP -->
+<!-- ========================= -->
+
+<div id="chapterModal" class="hidden">
+
+    <div id="chapterModalBox">
+
+        <h2>Add Chapter</h2>
+
+        <div id="chapterScrollWrapper" class="scrollAreaWrapper">
+
+            <button id="chapterScrollUp" class="scrollArrowBtn scrollArrowUp hidden" type="button" aria-label="Scroll up">
+
+                <svg viewBox="0 0 16 16"><path d="M4 10L8 5L12 10"/></svg>
+
+            </button>
+
+            <div id="chapterFormScroll" class="modalScrollArea">
+
+                <label>Subject</label>
+
+                <select id="chapterSubject">
+
+                    <option value="physics">Physics</option>
+
+                    <option value="chemistry">Chemistry</option>
+
+                    <option value="maths">Maths</option>
+
+                </select>
+                <label>Chapter Shade</label>
+
+<select id="chapterShade">
+
+    <option value="0">Light</option>
+
+    <option value="1" selected>Normal</option>
+
+    <option value="2">Dark</option>
+
+</select>
+
+                <label>Chapter Name</label>
+
+                <input
+                    id="chapterName"
+                    type="text"
+                    placeholder="Example : Kinematics">
+
+                <label>Start Date</label>
+
+<input
+    id="chapterStartDate"
+    type="date"
+    min="2026-01-01"
+    max="2027-12-31">
+
+                <label>Duration (Study Days)</label>
+
+                <input
+                    id="chapterDuration"
+                    type="number"
+                    min="1"
+                    value="5">
+
+                <label>Chapter Levels</label>
+
+                <div id="chapterLevelsPreview" class="levelsPreview"></div>
+
+            </div>
+
+            <button id="chapterScrollDown" class="scrollArrowBtn scrollArrowDown" type="button" aria-label="Scroll down">
+
+                <svg viewBox="0 0 16 16"><path d="M4 6L8 11L12 6"/></svg>
+
+            </button>
+
+        </div>
+
+        <button id="saveChapter">
+
+            Save Chapter
+
+        </button>
+
+    </div>
+
+</div>
+        <!-- ================================= -->
+        <!-- SUBJECT CHAPTER LIST POPOVER -->
+        <!-- ================================= -->
+        <!-- Opened via a subject timer row's "chapters" button (beside
+             Start/Pause). Lists that subject's chapters from the main
+             timeline. Kept outside #pomodoroPanel and positioned via
+             JS (position:fixed) so it isn't clipped by that panel's
+             overflow-y:auto. -->
+
+        <div id="subjectChapterPopover" class="subjectChapterPopover hidden">
+
+            <div class="subjectChapterPopoverHeader" id="subjectChapterPopoverTitle">
+                Chapters
+            </div>
+
+            <div class="subjectChapterPopoverLockNote hidden" id="subjectChapterPopoverLockNote">
+                🔒 Locked for this session — pause &amp; end the session to change it
+            </div>
+
+            <div class="subjectChapterPopoverList" id="subjectChapterPopoverList">
+            </div>
+
+        </div>
+
+        <!-- ========================= -->
+        <!-- TARGET PANEL -->
+        <!-- Small wide notification-style panel that drops down from
+             the very top of the viewport. Opened/closed solely by
+             re-clicking #quickTargetBtn in the header. Content is a
+             placeholder for now — to be filled in later. -->
+        <!-- ========================= -->
+
+        <div id="targetPanel" class="targetPanel">
+
+            <div class="targetPanelBody" id="targetPanelBody">
+
+                <div class="targetPanelLabel">
+                    <span class="targetPanelLabelMain">TARGET</span>
+                    <span class="targetPanelLabelSub">(ongoing)</span>
+                </div>
+
+                <div class="targetView" id="targetView">
+                    <h3 class="targetTitle" id="targetTitleDisplay">No target set yet</h3>
+                    <p class="targetDetails" id="targetDetailsDisplay"></p>
+                </div>
+
+                <div class="targetEdit" id="targetEdit">
+                    <input type="text" class="targetTitleInput" id="targetTitleInput" placeholder="Target heading…" maxlength="80">
+                    <textarea class="targetDetailsInput" id="targetDetailsInput" placeholder="Details…"></textarea>
+                </div>
+
+            </div>
+
+            <button id="targetPanelEditBtn" class="targetPanelEditBtn" type="button" aria-label="Edit target" title="Edit target">
+                <svg class="targetEditIconPencil" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <svg class="targetEditIconCheck" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 12.5l5 5L20 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+
+            <button id="targetPanelExpandBtn" class="targetPanelExpandBtn" type="button" aria-label="Expand panel" title="Expand">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 9l6 6 6-6M6 15l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+
+            <button id="targetPanelShrinkBtn" class="targetPanelShrinkBtn" type="button" aria-label="Shrink panel" title="Shrink">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 15l6-6 6 6M6 9l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+
+        </div>
+
+        <!-- ========================= -->
+        <!-- QUICK ACCESS BUTTON -->
+        <!-- Fixed to the bottom-right of the viewport (not the page),
+             so it stays put regardless of scroll position. Purely a
+             visual entry-point for now — behavior/click action to be
+             added later. -->
+        <!-- ========================= -->
+
+        <button id="quickAccessBtn" class="quickAccessBtn" type="button" aria-label="Todolist" title="Todolist">
+
+            <svg class="quickAccessIcon" viewBox="0 0 64 74" xmlns="http://www.w3.org/2000/svg">
+
+                <!-- spiral rings -->
+                <g class="qaRings" fill="none" stroke="#4b5563" stroke-width="3.4" stroke-linecap="round">
+                    <path d="M14 13V5"/>
+                    <path d="M24.4 13V5"/>
+                    <path d="M34.8 13V5"/>
+                    <path d="M45.2 13V5"/>
+                </g>
+
+                <!-- folded corner shadow -->
+                <path class="qaFold" d="M45 51 L58 51 L45 64 Z" fill="#d97706"/>
+
+                <!-- notepad body -->
+                <path class="qaPaper" d="M9 11
+                    a4 4 0 0 1 4-4
+                    h38
+                    a4 4 0 0 1 4 4
+                    v40
+                    L45 64
+                    H13
+                    a4 4 0 0 1-4-4
+                    Z"
+                    fill="#fbbf24"/>
+
+                <!-- title text -->
+                <text class="qaTitle" x="32" y="23" text-anchor="middle" font-size="7" font-weight="700" font-family="Arial, sans-serif" fill="#57534e">To-Do</text>
+
+                <!-- checklist lines + checkmarks -->
+                <g class="qaLines" stroke="#78716c" stroke-width="2.6" stroke-linecap="round">
+                    <line x1="24" y1="33" x2="49" y2="33"/>
+                    <line x1="24" y1="42.5" x2="49" y2="42.5"/>
+                    <line x1="24" y1="52" x2="42" y2="52"/>
+                </g>
+
+                <g class="qaChecks" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15.5 32.5l2.4 2.6 4.3-5"/>
+                    <path d="M15.5 42l2.4 2.6 4.3-5"/>
+                    <path d="M15.5 51.5l2.4 2.6 4.3-5"/>
+                </g>
+
+            </svg>
+
+        </button>
+
+        <!-- ========================= -->
+        <!-- TODO LIST PANEL -->
+        <!-- Opens to the left of the quick-access notepad button,
+             same size/behavior pattern as #pomodoroPanel: toggled by
+             re-clicking its opener button, or via its own close (×)
+             button. Content is a placeholder for now. -->
+        <!-- ========================= -->
+
+        <div id="todoPanel" class="todoPanel hidden">
+
+            <button id="todoPanelCloseBtn" class="todoPanelCloseBtn" type="button" aria-label="Close To-Do panel">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+            </button>
+
+            <div class="todoPanelHead">
+
+                <div class="todoPanelHeadTop">
+
+                    <h2 class="todoPanelTitle">To-Do</h2>
+
+                    <button id="todoModeToggleBtn" class="todoModeToggleBtn" type="button">
+                        <svg class="todoModeIconEdit" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <svg class="todoModeIconRead" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 5.5c2-1 5-1 8 .5 3-1.5 6-1.5 8-.5v13c-2-1-5-1-8 .5-3-1.5-6-1.5-8-.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                            <path d="M12 6v13" stroke="currentColor" stroke-width="1.8"/>
+                        </svg>
+                        <span id="todoModeToggleLabel">Edit</span>
+                    </button>
+
+                </div>
+
+                <div class="todoPanelDateRow">
+                    <button id="todoPrevDayBtn" class="todoDayNavBtn" type="button" aria-label="Previous day">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+
+                    <div class="todoPanelDateText">
+                        <p class="todoPanelDate" id="todoPanelDate"></p>
+                        <span class="todoDayTypeLabel" id="todoDayTypeLabel"></span>
+                    </div>
+
+                    <button id="todoNextDayBtn" class="todoDayNavBtn" type="button" aria-label="Next day">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="todoPanelBody" id="todoPanelBody">
+
+                <ul class="todoList" id="todoList"></ul>
+
+                <button id="addTodoBtn" class="addTodoBtn" type="button">
+                    + Add a task
+                </button>
+
+            </div>
+
+        </div>
+
+        <script src="script.js"></script>
+        <script src="pomodoro.js"></script>
+        <script src="quickAccess.js"></script>
+
+</body>
+
+</html>

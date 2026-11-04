@@ -1,0 +1,855 @@
+/* quickAccess.css
+   Standalone file for the floating "Quick Access" button only.
+   Nothing here touches Pomodoro or the base app styles, and
+   nothing outside this file styles this button. Fixed to the
+   bottom-right corner of the viewport (screen), independent of
+   page scroll. The button intentionally has no pill/circle
+   background — the colored to-do notepad SVG itself IS the
+   button. Visual only for now — no popup/panel wired up yet. */
+
+.quickAccessBtn{
+    position:fixed;
+    right:32px;
+    bottom:26px;
+    z-index:2000;
+
+    width:102px;
+    height:118px;
+    padding:0;
+    border:none;
+    background:transparent;
+
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+
+    cursor:pointer;
+
+    filter:drop-shadow(0 8px 14px rgba(0,0,0,.45));
+    transition:transform .2s ease, filter .2s ease;
+}
+
+.quickAccessIcon{
+    width:100%;
+    height:100%;
+    overflow:visible;
+    transition:transform .2s ease;
+}
+
+.quickAccessBtn:hover,
+.quickAccessBtn:focus-visible,
+.quickAccessBtn.qaActive{
+    transform:translateY(-6px) rotate(-3deg) scale(1.06);
+    filter:drop-shadow(0 14px 22px rgba(0,0,0,.55))
+           drop-shadow(0 0 14px rgba(251,191,36,.45));
+}
+
+.quickAccessBtn:active{
+    transform:translateY(-2px) rotate(-1deg) scale(1.01);
+}
+
+.quickAccessBtn:focus-visible{
+    outline:none;
+}
+
+/* Subtle lift on hover for the paper vs. its folded corner */
+.quickAccessBtn:hover .qaPaper,
+.quickAccessBtn.qaActive .qaPaper{
+    fill:#fcd34d;
+}
+
+.quickAccessBtn:hover .qaFold,
+.quickAccessBtn.qaActive .qaFold{
+    fill:#f59e0b;
+}
+
+/* Small-screen nudge so it doesn't overlap the horizontal timeline scrollbar */
+@media (max-width:640px){
+    .quickAccessBtn{
+        right:18px;
+        bottom:16px;
+        width:70px;
+        height:82px;
+    }
+}
+
+/* ================= HEADER TARGET ICON =================
+   Sits as the first item inside .headerButtons (left of "+ Add
+   Chapter"). Deliberately NOT a box like the other header buttons —
+   just the bare line-drawing icon floating directly on the header.
+
+   #quickTargetBtn (ID selector) is used specifically so this beats
+   .headerButtons button's background/padding/border-radius/color,
+   which would otherwise win on specificity and both hide the icon
+   (padding fighting a small fixed size) and leave a visible box
+   around it. */
+
+#quickTargetBtn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:28px;
+    height:28px;
+    padding:0;
+    margin:0;
+    border:none;
+    border-radius:0;
+    background:transparent;
+    background-color:transparent;
+    box-shadow:none;
+    color:#9ca3af;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:color .2s ease, transform .2s ease;
+}
+
+#quickTargetBtn .qaTargetIcon{
+    width:20px;
+    height:20px;
+    pointer-events:none;
+}
+
+#quickTargetBtn:hover,
+#quickTargetBtn:focus-visible{
+    background:transparent;
+    color:#fbbf24;
+    transform:scale(1.12);
+}
+
+#quickTargetBtn:active{
+    background:transparent;
+    transform:scale(1.0);
+}
+
+#quickTargetBtn:focus-visible{
+    outline:none;
+}
+
+/* ================= TARGET PANEL =================
+   Small notification-style panel that drops down from just below
+   the header, anchored to the left of #quickTargetBtn (position is
+   set in JS via left/top so it tracks the button and stays
+   on-screen at any width — this CSS only handles sizing/appearance
+   and the slide/fade animation). Acts as a notepad + notifier
+   hybrid (content added later). Square top corners (flush against
+   the header) and rounded bottom corners. Same dark base as
+   .todoPanel, but with glowing neon-blue borders instead of amber,
+   and the glow is aimed inward (inset) rather than outward.
+   Opened/closed purely by re-clicking #quickTargetBtn — no
+   outside-click or Escape handling, and no separate close (×) button.
+
+   Expand/shrink: a bare corner button (no box, same treatment as
+   #quickTargetBtn) grows the panel to roughly 4-5x its resting
+   height via the .expanded class; a second bare button in the same
+   corner shrinks it back. Only one of the two is visible at a time. */
+
+.targetPanel{
+    position:fixed;
+    top:0;
+    left:0;
+    z-index:2100;
+
+    width:min(300px,80vw);
+    height:80px;
+    max-height:70vh;
+
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    padding:12px 16px 22px;
+
+    background:#1f2937;
+    border:2px solid #38bdf8;
+    border-top:none;
+    border-radius:0 0 14px 14px;
+    box-shadow:
+        inset 0 0 14px rgba(56,189,248,.55),
+        inset 0 0 30px rgba(56,189,248,.25);
+
+    color:#e5e7eb;
+
+    transform:translateY(-130%);
+    opacity:0;
+    pointer-events:none;
+    transition:transform .3s cubic-bezier(.16,.84,.44,1), opacity .22s ease, height .3s ease;
+}
+
+.targetPanel.open{
+    transform:translateY(0);
+    opacity:1;
+    pointer-events:auto;
+}
+
+.targetPanel.expanded{
+    height:min(420px,70vh);
+}
+
+.targetPanelBody{
+    flex:1 1 auto;
+    overflow-y:auto;
+    overflow-x:hidden;
+    font-size:13px;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    min-width:0;
+
+    /* Themed scrollbar, same treatment as .targetDetailsInput below.
+       padding-right reserves room for the thumb so it never sits on
+       top of the text; scrollbar-gutter keeps that space stable even
+       before the content is tall enough to actually scroll. */
+    padding-right:10px;
+    scrollbar-gutter:stable;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(56,189,248,.5) transparent;
+}
+
+.targetPanelBody::-webkit-scrollbar{
+    width:6px;
+}
+
+.targetPanelBody::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.targetPanelBody::-webkit-scrollbar-thumb{
+    background:rgba(56,189,248,.5);
+    border-radius:999px;
+}
+
+.targetPanelBody::-webkit-scrollbar-thumb:hover{
+    background:rgba(56,189,248,.8);
+}
+
+/* ---- Target content: label + heading + details (notice-board) ---- */
+
+.targetPanelLabel{
+    flex:0 0 auto;
+    display:flex;
+    align-items:baseline;
+    justify-content:center;
+    gap:6px;
+    text-align:center;
+    margin-bottom:2px;
+}
+
+.targetPanelLabelMain{
+    font-size:16px;
+    font-weight:800;
+    letter-spacing:.08em;
+    color:#38bdf8;
+    text-transform:uppercase;
+}
+
+.targetPanelLabelSub{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.05em;
+    color:#f87171;
+    text-transform:uppercase;
+}
+
+.targetView{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:0;
+}
+
+.targetTitle{
+    margin:0;
+    font-size:15px;
+    font-weight:700;
+    color:#e0f2fe;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    overflow-wrap:break-word;
+    word-break:break-word;
+}
+
+.targetDetails{
+    margin:0;
+    font-size:12.5px;
+    line-height:1.5;
+    color:#cbd5e1;
+    white-space:pre-wrap;
+    overflow-wrap:break-word;
+    word-break:break-word;
+    display:none;
+}
+
+/* Collapsed: only the (truncated) heading shows.
+   Expanded: heading wraps fully and details become visible. */
+.targetPanel.expanded .targetTitle{
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+}
+
+.targetPanel.expanded .targetDetails{
+    display:block;
+}
+
+/* ---- Target edit fields (swapped in for .targetView) ---- */
+
+.targetEdit{
+    display:none;
+    flex-direction:column;
+    gap:8px;
+    min-width:0;
+    flex:1 1 auto;
+    min-height:0;
+}
+
+.targetPanel.expanded.editingTarget .targetView{
+    display:none;
+}
+
+.targetPanel.expanded.editingTarget .targetEdit{
+    display:flex;
+}
+
+.targetTitleInput,
+.targetDetailsInput{
+    width:100%;
+    background:#111827;
+    border:1px solid #374151;
+    border-radius:6px;
+    padding:7px 9px;
+    color:#f1f5f9;
+    font-size:13px;
+    font-family:inherit;
+    outline:none;
+    resize:none;
+    transition:border-color .15s ease;
+    box-sizing:border-box;
+}
+
+.targetTitleInput:focus,
+.targetDetailsInput:focus{
+    border-color:#38bdf8;
+}
+
+.targetDetailsInput{
+    flex:1 1 auto;
+    min-height:60px;
+    overflow-x:hidden;
+    overflow-y:auto;
+    word-break:break-word;
+    overflow-wrap:break-word;
+    white-space:pre-wrap;
+
+    /* Themed scrollbar, pushed to the very edge of the box and
+       kept thin rather than the default plain-white bar. */
+    padding-right:14px;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(56,189,248,.5) transparent;
+}
+
+.targetDetailsInput::-webkit-scrollbar{
+    width:6px;
+}
+
+.targetDetailsInput::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.targetDetailsInput::-webkit-scrollbar-thumb{
+    background:rgba(56,189,248,.5);
+    border-radius:999px;
+}
+
+.targetDetailsInput::-webkit-scrollbar-thumb:hover{
+    background:rgba(56,189,248,.8);
+}
+
+/* Bare edit toggle — bottom-left corner, only while expanded, mirrors
+   the expand/shrink button treatment on the opposite corner. Icon
+   swaps from pencil to checkmark while actively editing. */
+.targetPanelEditBtn{
+    display:none;
+    position:absolute;
+    left:10px;
+    bottom:6px;
+    width:20px;
+    height:20px;
+    padding:0;
+    border:none;
+    background:transparent;
+    color:#7dd3fc;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:color .2s ease, transform .2s ease;
+}
+
+.targetPanelEditBtn svg{
+    width:17px;
+    height:17px;
+    pointer-events:none;
+}
+
+.targetEditIconCheck{
+    display:none;
+}
+
+.targetPanel.editingTarget .targetEditIconPencil{
+    display:none;
+}
+
+.targetPanel.editingTarget .targetEditIconCheck{
+    display:block;
+}
+
+.targetPanelEditBtn:hover,
+.targetPanelEditBtn:focus-visible{
+    color:#e0f2fe;
+    transform:scale(1.15);
+}
+
+.targetPanelEditBtn:focus-visible{
+    outline:none;
+}
+
+.targetPanel.expanded .targetPanelEditBtn{
+    display:flex;
+}
+
+/* Bare expand/shrink toggle — bottom-right corner, no background box,
+   mirrors #quickTargetBtn's treatment. */
+.targetPanelExpandBtn,
+.targetPanelShrinkBtn{
+    position:absolute;
+    right:10px;
+    bottom:6px;
+    width:20px;
+    height:20px;
+    padding:0;
+    border:none;
+    background:transparent;
+    color:#7dd3fc;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:color .2s ease, transform .2s ease;
+}
+
+.targetPanelExpandBtn svg,
+.targetPanelShrinkBtn svg{
+    width:18px;
+    height:18px;
+    pointer-events:none;
+}
+
+.targetPanelExpandBtn:hover,
+.targetPanelExpandBtn:focus-visible,
+.targetPanelShrinkBtn:hover,
+.targetPanelShrinkBtn:focus-visible{
+    color:#e0f2fe;
+    transform:scale(1.15);
+}
+
+.targetPanelExpandBtn:focus-visible,
+.targetPanelShrinkBtn:focus-visible{
+    outline:none;
+}
+
+.targetPanelShrinkBtn{
+    display:none;
+}
+
+.targetPanel.expanded .targetPanelExpandBtn{
+    display:none;
+}
+
+.targetPanel.expanded .targetPanelShrinkBtn{
+    display:flex;
+}
+
+@media (max-width:640px){
+    .targetPanel{
+        width:min(260px,72vw);
+        padding:10px 14px 24px;
+    }
+}
+
+/* ================= TODO PANEL =================
+   Same sizing/behavior pattern as #pomodoroPanel (see pomodoro.css):
+   fixed, roughly the same footprint, toggled open/closed. Anchored
+
+   to the bottom-right so it sits just left of the notepad button
+   rather than up near the header. */
+
+.todoPanel{
+    position:fixed;
+    right:166px;
+    top:94px;
+    width:380px;
+    height:calc(100vh - 140px);
+    max-height:calc(100vh - 140px);
+    z-index:1900;
+
+    display:flex;
+    flex-direction:column;
+    padding:18px;
+    border-radius:14px;
+
+    background:#1f2937;
+    border:3px solid #fbbf24;
+    box-shadow:0 0 30px rgba(251,191,36,.5);
+
+    transition:.2s;
+}
+
+.todoPanel.hidden{
+    display:none;
+}
+
+/* Background blur while the panel is open — same treatment as
+   #pomodoroPanel gives #plannerArea in pomodoro.css. */
+body.todoOpen #plannerArea{
+    filter:blur(6px);
+    pointer-events:none;
+    transition:filter .2s ease;
+}
+
+.todoPanelCloseBtn{
+    position:absolute;
+    top:16px;
+    right:-16px;
+    transform:translateX(100%);
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#111827;
+    border:2px solid #fbbf24;
+    color:#fde68a;
+    cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,.45);
+    transition:background .15s ease, transform .15s ease;
+}
+
+.todoPanelCloseBtn:hover{
+    background:#fbbf24;
+    color:#1f2937;
+    transform:translateX(100%) scale(1.08);
+}
+
+.todoPanelCloseBtn svg{
+    width:16px;
+    height:16px;
+}
+
+.todoPanelHead{
+    flex:0 0 auto;
+    margin-bottom:14px;
+}
+
+.todoPanelHeadTop{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+
+.todoPanelTitle{
+    color:#fde68a;
+    font-size:20px;
+    font-weight:700;
+    margin:0;
+}
+
+.todoPanelDateRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-top:6px;
+}
+
+.todoPanelDateText{
+    flex:1 1 auto;
+    text-align:center;
+}
+
+.todoPanelDate{
+    margin:0;
+    color:#9ca3af;
+    font-size:12.5px;
+    letter-spacing:.02em;
+}
+
+.todoDayTypeLabel{
+    display:inline-block;
+    margin-top:2px;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:#6b7280;
+}
+
+.todoPanel.pastDay .todoDayTypeLabel{ color:#9ca3af; }
+.todoPanel.futureDay .todoDayTypeLabel{ color:#60a5fa; }
+.todoPanel.todayDay .todoDayTypeLabel{ color:#34d399; }
+
+.todoDayNavBtn{
+    flex:0 0 auto;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:1px solid #374151;
+    background:transparent;
+    color:#d1d5db;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease, opacity .15s ease;
+}
+
+.todoDayNavBtn svg{
+    width:14px;
+    height:14px;
+}
+
+.todoDayNavBtn:hover{
+    border-color:#fbbf24;
+    background:rgba(251,191,36,.08);
+}
+
+.todoDayNavBtn:disabled{
+    opacity:.3;
+    cursor:default;
+    pointer-events:none;
+}
+
+/* Past days: fully locked view, no mode toggle */
+.todoPanel.pastDay .todoModeToggleBtn{
+    display:none;
+}
+
+.todoPanel.pastDay .todoCheckBtn{
+    pointer-events:none;
+}
+
+/* Future days: toggle stays, but checkboxes never usable */
+.todoPanel.futureDay .todoCheckBtn{
+    opacity:.4;
+    pointer-events:none;
+}
+
+.todoEmptyState{
+    color:#6b7280;
+    font-size:13px;
+    text-align:center;
+    padding:18px 8px;
+}
+
+/* Read / Edit mode toggle */
+.todoModeToggleBtn{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 12px;
+    border-radius:999px;
+    border:1.5px solid #fbbf24;
+    background:transparent;
+    color:#fde68a;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease, transform .15s ease;
+}
+
+.todoModeToggleBtn:hover{
+    background:#fbbf24;
+    color:#1f2937;
+    transform:translateY(-1px);
+}
+
+.todoModeToggleBtn svg{
+    width:14px;
+    height:14px;
+    flex:0 0 auto;
+}
+
+/* Only one icon shows depending on current mode */
+.todoModeIconRead{ display:none; }
+
+.todoPanel.editMode .todoModeIconEdit{ display:none; }
+.todoPanel.editMode .todoModeIconRead{ display:block; }
+
+.todoPanelBody{
+    flex:1 1 auto;
+    overflow-y:auto;
+    color:#e5e7eb;
+    font-size:14px;
+}
+
+/* ===== task list ===== */
+
+.todoList{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.todoItem{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 10px;
+    border-radius:10px;
+    background:#111827;
+    border:1px solid #374151;
+    transition:border-color .15s ease, opacity .15s ease;
+}
+
+.todoItem.completed{
+    opacity:.6;
+}
+
+/* checkbox */
+.todoCheckBtn{
+    flex:0 0 auto;
+    width:20px;
+    height:20px;
+    border-radius:6px;
+    border:2px solid #6b7280;
+    background:transparent;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    transition:background .15s ease, border-color .15s ease;
+}
+
+.todoCheckBtn svg{
+    width:12px;
+    height:12px;
+    opacity:0;
+    transition:opacity .1s ease;
+}
+
+.todoItem.completed .todoCheckBtn{
+    background:#16a34a;
+    border-color:#16a34a;
+}
+
+.todoItem.completed .todoCheckBtn svg{
+    opacity:1;
+}
+
+/* edit mode: checkbox is inert/dimmed since checking off happens in read mode */
+.todoPanel.editMode .todoCheckBtn{
+    cursor:default;
+    opacity:.4;
+    pointer-events:none;
+}
+
+/* task text: plain in read mode, editable input in edit mode */
+.todoItemText{
+    flex:1 1 auto;
+    color:#e5e7eb;
+    font-size:14px;
+    line-height:1.4;
+    word-break:break-word;
+}
+
+.todoItem.completed .todoItemText{
+    text-decoration:line-through;
+    color:#9ca3af;
+}
+
+.todoItemInput{
+    flex:1 1 auto;
+    background:#1f2937;
+    border:1px solid #4b5563;
+    border-radius:6px;
+    padding:6px 8px;
+    color:#f9fafb;
+    font-size:14px;
+    font-family:inherit;
+    outline:none;
+}
+
+.todoItemInput:focus{
+    border-color:#fbbf24;
+}
+
+/* delete button only present/usable in edit mode */
+.todoDeleteBtn{
+    display:none;
+    flex:0 0 auto;
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    border:none;
+    background:transparent;
+    color:#9ca3af;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+}
+
+.todoDeleteBtn svg{
+    width:13px;
+    height:13px;
+}
+
+.todoDeleteBtn:hover{
+    background:#7f1d1d;
+    color:#fecaca;
+}
+
+.todoPanel.editMode .todoDeleteBtn{
+    display:flex;
+}
+
+/* add task button only usable in edit mode */
+.addTodoBtn{
+    display:none;
+    width:100%;
+    margin-top:10px;
+    padding:9px 10px;
+    border-radius:10px;
+    border:1.5px dashed #4b5563;
+    background:transparent;
+    color:#d1d5db;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease, background .15s ease;
+    flex:0 0 auto;
+}
+
+.addTodoBtn:hover{
+    border-color:#fbbf24;
+    color:#fde68a;
+    background:rgba(251,191,36,.08);
+}
+
+.todoPanel.editMode .addTodoBtn{
+    display:block;
+}
+
+@media (max-width:640px){
+    .todoPanel{
+        right:12px;
+        left:12px;
+        top:94px;
+        width:auto;
+        height:calc(100vh - 140px);
+    }
+}

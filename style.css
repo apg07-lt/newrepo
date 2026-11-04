@@ -1,0 +1,2035 @@
+/* STUDY PLANNER V1 — PART 1: GLOBAL + HEADER + SIDEBAR + TIMELINE */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Segoe UI",Arial,sans-serif;
+}
+
+:root{
+    --dayWidth:42px;
+    --rowHeight:72px;
+    --rowGap:18px;
+    --barHeight:60px;
+    --barTop:6px;
+    --sundayHeight:306px;
+    /* Highlight colour for the active chapter's bar(s); must stand apart from every subject/level colour */
+    --activeChapterColor:#ffffff;
+    /* Neon theme accents (active only with body.neonMode) — drive title gradient, header glow, chapter-panel chrome */
+    --accentPink:#ec4899;
+    --accentPurple:#a855f7;
+    /* Neon theme background shades, darkest to lightest per app area */
+    --bgPage:#0d0b1a;        /* body */
+    --bgHeader:#1a1530;      /* top header bar */
+    --bgSidebar:#150f28;     /* left sidebar */
+    --bgPlanner:#100c22;     /* area behind the timeline */
+    --bgTimeline:#1c1533;    /* the timeline card itself */
+}
+
+html{
+    /* Hides native scrollbar; page still scrolls normally */
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+}
+
+html::-webkit-scrollbar{
+    display:none;
+}
+
+body{
+    background:#111827;
+    color:#f3f4f6;
+    min-height:100vh;
+    position:relative;
+}
+
+/* Extends sidebar bg/border to bottom of page via pseudo-element (not a second sidebar); z-index -1 keeps it non-interactive */
+body::before{
+    content:"";
+    position:absolute;
+    top:70px;
+    left:0;
+    bottom:0;
+    width:220px;
+    background:#18212f;
+    border-right:1px solid #374151;
+    z-index:-1;
+}
+
+/* Reserved scroll space for future features */
+#futureSpace{
+    height:300vh;
+}
+
+/* ================= HEADER ================= */
+
+#topHeader{
+    height:70px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 24px;
+    background:#1f2937;
+    border-bottom:1px solid #374151;
+}
+
+.titleArea h1{
+    font-size:28px;
+    font-weight:700;
+}
+
+.titleArea p{
+    margin-top:4px;
+    color:#9ca3af;
+    font-size:14px;
+}
+
+.headerButtons{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.headerButtons button{
+    padding:8px 16px;
+    border:none;
+    border-radius:8px;
+    background:#374151;
+    color:#fff;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.headerButtons button:hover{
+    background:#4b5563;
+}
+
+#zoomPercent{
+    width:55px;
+    text-align:center;
+}
+
+/* WALLPAPER / NEON TOGGLE BUTTONS — independent toggles; .active marks the on state */
+
+.iconToggleBtn{
+    width:38px;
+    height:38px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:16px;
+    line-height:1;
+    flex-shrink:0;
+}
+
+.iconToggleBtn.active{
+    background:#22c55e;
+}
+
+.iconToggleBtn.active:hover{
+    background:#16a34a;
+}
+
+/* SETTINGS BUTTON + DROPDOWN PANEL — opens below the gear button via absolute+relative positioning, no JS math needed */
+
+.settingsWrap{
+    position:relative;
+    display:flex;
+    flex-shrink:0;
+}
+
+#settingsBtn[aria-expanded="true"]{
+    background:#4b5563;
+}
+
+#settingsPanel{
+    position:absolute;
+    top:calc(100% + 8px);
+    right:0;
+    width:200px;
+    background:#1f2937;
+    border:1px solid #374151;
+    border-radius:12px;
+    padding:8px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    z-index:1001;
+    box-shadow:0 12px 28px rgba(0,0,0,.4);
+    opacity:0;
+    transform:translateY(-6px);
+    pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+}
+
+#settingsPanel:not(.hidden){
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+}
+
+.settingsPanelItem{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    padding:10px 12px;
+    border:none;
+    border-radius:8px;
+    background:transparent;
+    color:#fff;
+    font-size:14px;
+    text-align:left;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.settingsPanelItem:hover{
+    background:#374151;
+}
+
+.settingsPanelDivider{
+    height:1px;
+    background:#374151;
+    margin:4px 2px;
+}
+
+.settingsPanelItemDanger{
+    color:#f87171;
+}
+
+.settingsPanelItemDanger:hover{
+    background:rgba(248,113,113,.15);
+}
+
+.settingsPanelIcon{
+    font-size:16px;
+    width:20px;
+    flex-shrink:0;
+    display:inline-flex;
+    justify-content:center;
+}
+
+/* MAIN */
+
+#mainContainer{
+    display:flex;
+    align-items:stretch;
+}
+
+/* SIDEBAR */
+
+#leftSidebar{
+    width:220px;
+    display:flex;
+    flex-direction:column;
+    padding:20px;
+    background:#18212f;
+    border-right:1px solid #374151;
+    overflow-y:auto;
+    position:relative;
+    z-index:1;
+}
+
+#sidebarSpacer{
+    height:89px;
+}
+
+.subject{
+    height:var(--rowHeight);
+    padding:10px;
+    margin-bottom:var(--rowGap);
+    border-radius:12px;
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    gap:12px;
+    overflow:hidden;
+    transition:.2s;
+}
+
+.subjectIcon{
+    width:39px;
+    height:39px;
+    flex-shrink:0;
+}
+
+.physics .subjectIcon{
+    color:#ef4444;
+}
+
+.chemistry .subjectIcon{
+    color:#22c55e;
+}
+
+.maths .subjectIcon{
+    color:#3b82f6;
+}
+
+/* Name + Missed count grouped so they center as a unit without moving the icon */
+.subjectText{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    min-width:0;
+}
+
+.subjectText h2{
+    font-size:22px;
+    transition:.2s;
+}
+
+.subjectText p{
+    margin-top:4px;
+    color:#cbd5e1;
+    font-size:15px;
+    transition:.2s;
+}
+
+.physics{
+    background:#4b1d1d;
+    border-left:5px solid #ef4444;
+    box-shadow:0 0 12px #ef4444aa;
+}
+
+.chemistry{
+    background:#16331f;
+    border-left:5px solid #22c55e;
+    box-shadow:0 0 12px #22c55eaa;
+}
+
+.maths{
+    background:#13294b;
+    border-left:5px solid #3b82f6;
+    box-shadow:0 0 12px #3b82f6aa;
+}
+
+/* PLANNER */
+
+#plannerArea{
+    /* Fills space left of sidebar; min-width:0 lets it shrink so overflow:auto works */
+    flex:1;
+    min-width:0;
+    /* Snug height for month/date headers + 3 subject rows; raise if a 4th row is added */
+    height:560px;
+    overflow:auto;
+    background:#111827;
+}
+
+/* Custom scrollbar: vertical hidden, horizontal styled as a grey pill */
+
+#plannerArea{
+    scrollbar-width:thin;
+    scrollbar-color:#4b5563 transparent;
+}
+
+#plannerArea::-webkit-scrollbar{
+    height:14px;   /* horizontal (bottom) scrollbar thickness */
+    width:0;       /* vertical scrollbar — hidden */
+}
+
+#plannerArea::-webkit-scrollbar-track{
+    background:#1a2332;
+    border-radius:20px;
+    margin:0 4px;
+}
+
+#plannerArea::-webkit-scrollbar-thumb{
+    background:#4b5563;
+    border-radius:20px;
+    border:3px solid #1a2332;
+}
+
+#plannerArea::-webkit-scrollbar-thumb:hover{
+    background:#6b7280;
+}
+
+#plannerArea::-webkit-scrollbar-corner{
+    background:transparent;
+}
+
+#timelineWrapper{
+    min-width:2400px;
+    padding:24px;
+}
+
+#timeline{
+    background-color:#1f2937;
+    background-image:
+        repeating-linear-gradient(
+            to right,
+            transparent 0px,
+            transparent 41px,
+            rgba(255,255,255,0.08) 41px,
+            rgba(255,255,255,0.08) 42px
+        ),
+        url("images/timeline-wallpaper.png");
+    background-repeat:repeat, repeat-x;
+    background-position:20px 0, left top;
+    background-size:auto, auto 100%;
+    border-radius:14px;
+    padding:20px;
+    min-height:500px;
+    overflow:visible;
+}
+body.wallpaperHidden #timeline{
+    background-image:
+        repeating-linear-gradient(
+            to right,
+            transparent 0px,
+            transparent 41px,
+            rgba(255,255,255,0.08) 41px,
+            rgba(255,255,255,0.08) 42px
+        );
+    background-repeat:repeat;
+    background-position:20px 0;
+    background-size:auto;
+}
+
+/* HEADERS — CAPSULE STYLE: cells render as separated rounded capsules so gaps stay open for the background pattern */
+
+#dateHeader,
+#weekdayHeader{
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns:var(--dayWidth);
+}
+
+#monthHeader{
+    display:flex;
+    height:26px;
+    margin-bottom:8px;
+    font-weight:700;
+    align-items:center;
+}
+
+.monthGroup{
+    height:100%;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+}
+
+.monthLabel{
+    position:sticky;
+    left:0;
+    white-space:nowrap;
+    padding:4px 14px;
+    margin-left:4px;
+    background:#7c3aed;
+    color:#fff;
+    border-radius:8px;
+    box-shadow:0 2px 6px rgba(0,0,0,.35);
+}
+
+#dateHeader{
+    height:34px;
+}
+
+#dateHeader div{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:600;
+    margin:2px 3px;
+    background:#facc15;
+    color:#1f2937;
+    border-radius:8px;
+    box-shadow:0 2px 5px rgba(0,0,0,.3);
+}
+
+#weekdayHeader{
+    height:20px;
+    margin-top:6px;
+    margin-bottom:12px;
+}
+
+#weekdayHeader div{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    font-size:12px;
+    margin:0 3px;
+    border-radius:8px;
+    color:#0f172a;
+    font-weight:600;
+}
+
+#weekdayHeader div:nth-child(odd){
+    background:#38bdf8;
+}
+
+#weekdayHeader div:nth-child(even){
+    background:#f472b6;
+}
+
+#dateHeader .todayCell{
+    background:#2563eb;
+    color:#fff;
+    box-shadow:0 0 8px #3b82f6cc;
+}
+
+#dateHeader .dateCellClickable{
+    cursor:pointer;
+    transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+}
+
+#dateHeader .dateCellClickable:hover,
+#dateHeader .dateCellClickable:focus-visible{
+    background:#eab308;
+    transform:translateY(-2px);
+    box-shadow:0 4px 10px rgba(0,0,0,.4);
+    outline:none;
+}
+
+#dateHeader .dateCellClickable.todayCell:hover,
+#dateHeader .dateCellClickable.todayCell:focus-visible{
+    background:#3b82f6;
+}
+
+.sundayCell{
+    background:#3b3414;
+    color:#fde68a;
+}
+
+#sundayRow{
+    position:relative;
+    height:20px;
+    margin-bottom:16px;
+}
+
+.sundayTask{
+    position:absolute;
+    top:0;
+    z-index:5;
+    height:var(--sundayHeight);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-evenly;
+    align-items:center;
+    border-radius:8px;
+    background:#403517;
+    border:3px solid #66551c;
+    transition:.3s;
+    color:#fde68a;
+    font-size:10px;
+    text-align:center;
+    padding:8px 2px;
+}
+
+.sundayTask:hover{
+    box-shadow:0 0 14px #fbbf24cc;
+    transform:translateY(-2px);
+}
+
+.sundayTaskItem{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    cursor:pointer;
+}
+
+.sundayTaskItem input{
+    width:14px;
+    height:14px;
+    cursor:pointer;
+    margin:0;
+}
+
+.sundayTaskItem span{
+    line-height:1.25;
+    word-break:break-word;
+}
+
+/* COMPACT MODE — auto-engaged while chapter panel is open, so all 3 rows stay visible */
+
+body.compactMode .chapterTitle{
+    font-size:10px;
+}
+
+body.compactMode .chapterChecks input{
+    width:11px;
+    height:11px;
+}
+body.compactMode .chapterBar{
+    gap:2px;
+    padding:2px 4px 2px 14px;
+}
+
+body.compactMode .sundayTaskItem span{
+    font-size:8px;
+}
+
+body.compactMode .sundayTaskItem input{
+    width:11px;
+    height:11px;
+}
+
+/* Shrink headers and hide weekday row to free space for subject rows */
+
+body.compactMode #monthHeader{
+    height:16px;
+    margin-bottom:2px;
+    font-size:10px;
+}
+
+body.compactMode .monthLabel{
+    padding:1px 8px;
+    margin-left:2px;
+}
+
+body.compactMode #dateHeader{
+    height:18px;
+}
+body.compactMode #timeline{
+    min-height:280px;
+}
+
+body.compactMode #dateHeader div{
+    font-size:11px;
+    margin:0 2px;
+    border-radius:5px;
+}
+
+body.compactMode #weekdayHeader{
+    display:none;
+}
+
+/* Sidebar shrinks in sync via shared --rowHeight/--rowGap vars; inner spacing tightened to fit */
+
+body.compactMode .subject{
+    padding:4px 8px;
+    gap:8px;
+}
+
+body.compactMode .subjectText h2{
+    font-size:13px;
+}
+
+body.compactMode .subjectIcon{
+    width:24px;
+    height:24px;
+}
+
+body.compactMode .subjectText p{
+    font-size:11px;
+    margin-top:2px;
+}
+
+/* HIDE/SHOW CHECKBOXES TOGGLE */
+
+body.checksHidden .chapterChecks{
+    display:none;
+}
+
+body.checksHidden .sundayTaskItem{
+    display:none;
+}
+
+body.checksHidden .subject p{
+    display:none;
+}
+
+body.checksHidden .chapterBar{
+    justify-content:center;
+}
+/* PART 2: SUBJECT ROWS + CHAPTER BARS */
+
+.subjectRow{
+    position:relative;
+    display:block;
+    height:var(--rowHeight);
+    margin-top:var(--rowGap);
+    border-bottom:1px solid #374151;
+    overflow:visible;
+}
+
+.subjectRow:last-child{
+    border-bottom:none;
+}
+
+/* CHAPTER BAR */
+
+.chapterBar{
+    position:absolute;
+    top:var(--barTop);
+    height:var(--barHeight);
+    display:flex;
+    align-items:flex-start;
+    justify-content:flex-start;
+    gap:6px;
+    padding:0 12px;
+    border-radius:4px;
+    /* Colour set per-bar from script.js via --barGlow; #374151 fallback shows before JS runs */
+    background:var(--barGlow,#374151);
+    color:white;
+    font-size:13px;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    cursor:pointer;
+    user-select:none;
+    transition:.2s;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+
+.chapterBar:hover, .chapterBar.hovered{
+    transform:translateY(-2px);
+    box-shadow:0 6px 14px rgba(0,0,0,.35), 0 0 14px #facc15cc;
+}
+
+.chapterBar:active{
+    transform:translateY(0);
+}
+
+/* ACTIVE CHAPTER HIGHLIGHT — applied to every segment of the open chapter (see setActiveChapterHighlight() in script.js); !important overrides the inline bar colour */
+
+.chapterBar.activeChapter{
+    background:var(--activeChapterColor) !important;
+    /* Dark outline (a white ring would vanish on a white fill); flip to a light outline if --activeChapterColor becomes dark */
+    box-shadow:0 6px 16px rgba(0,0,0,.4), 0 0 0 2px #111827, 0 0 18px var(--activeChapterColor);
+}
+
+/* Forces dark text on light highlight fills; remove if --activeChapterColor is dark */
+.chapterBar.activeChapter,
+.chapterBar.activeChapter .chapterTitle{
+    color:#111827 !important;
+}
+
+/* Optional subject colours if used later */
+
+.physicsBar{
+    background:#ef4444;
+}
+
+.chemistryBar{
+    background:#22c55e;
+}
+
+.mathsBar{
+    background:#3b82f6;
+}
+
+/* Completed */
+
+.completedChapter{
+    opacity:.45;
+    filter:grayscale(100%);
+}
+
+/* CHAPTER PANEL */
+
+#chapterPanel{
+    position:fixed;
+    left:220px;
+    right:0;
+    bottom:0;
+    height:320px;
+    background:#1f2937;
+    border-top:2px solid #374151;
+    display:flex;
+    flex-direction:column;
+    z-index:900;
+}
+
+#chapterHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:16px 20px;
+    border-bottom:1px solid #374151;
+}
+
+#chapterTitle{
+    font-size:22px;
+}
+
+#closePanel{
+    width:38px;
+    height:38px;
+    border:none;
+    border-radius:8px;
+    background:#374151;
+    color:white;
+    cursor:pointer;
+}
+
+#closePanel:hover{
+    background:#4b5563;
+}
+
+#chapterContent{
+    flex:1;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    padding:18px;
+    overflow:auto;
+}
+
+.infoBox{
+    display:flex;
+    flex-direction:column;
+}
+
+.infoBox h3{
+    margin-bottom:8px;
+    color:#93c5fd;
+}
+
+.infoBox textarea{
+    flex:1;
+    min-height:70px;
+    padding:10px;
+    border:1px solid #374151;
+    border-radius:8px;
+    background:#111827;
+    color:white;
+    resize:vertical;
+}
+
+#plannerBox{
+    grid-column:1 / span 2;
+    padding:14px;
+    border:1px solid #374151;
+    border-radius:10px;
+    background:#111827;
+}
+
+#plannerBox h3{
+    margin-bottom:12px;
+    color:#fbbf24;
+}
+
+#chapterPlanner{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+#chapterStats{
+    grid-column:1 / span 2;
+    display:flex;
+    justify-content:flex-end;
+    gap:28px;
+}
+
+#chapterStats b{
+    color:#22c55e;
+}
+.hidden{
+    display:none;
+}
+
+#chapterModal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+    opacity:1;
+    transition:opacity .2s ease;
+}
+
+#chapterModal.hidden{
+    opacity:0;
+    pointer-events:none;
+}
+
+/* Generic .modal overlay — same pattern as #chapterModal */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+}
+
+.modal.hidden{
+    display:none;
+}
+
+.modalContent{
+    width:420px;
+    background:#1f2937;
+    border:1px solid #374151;
+    border-radius:14px;
+    padding:24px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.modalContent h2{
+    font-size:20px;
+    margin-bottom:4px;
+}
+
+.modalContent button{
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#374151;
+    color:#fff;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.modalContent button:hover{
+    background:#4b5563;
+}
+
+#chapterModalBox{
+    width:420px;
+    background:#1f2937;
+    border:1px solid #374151;
+    border-radius:14px;
+    padding:24px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    transform:scale(1) translateY(0);
+    transition:transform .25s ease;
+}
+
+#chapterModal.hidden #chapterModalBox{
+    transform:scale(.92) translateY(12px);
+}
+
+#chapterModalBox input,
+#chapterModalBox select{
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #4b5563;
+    background:#111827;
+    color:white;
+}
+
+/* ADD CHAPTER POPUP — keeps modal box height fixed; new fields scroll internally so Save Chapter stays visible */
+
+.scrollAreaWrapper{
+    position:relative;
+}
+
+.modalScrollArea{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    max-height:320px;
+    overflow-y:auto;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+}
+
+.modalScrollArea::-webkit-scrollbar{
+    display:none;
+}
+
+/* Replaces native scrollbar; each arrow hides itself via JS when there's nowhere left to scroll */
+
+.scrollArrowBtn{
+    position:absolute;
+    right:2px;
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    border:none;
+    background:#374151;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    cursor:pointer;
+    z-index:5;
+    box-shadow:0 2px 6px rgba(0,0,0,.4);
+    transition:background .2s;
+}
+
+.scrollArrowBtn:hover{
+    background:#4b5563;
+}
+
+.scrollArrowBtn svg{
+    width:14px;
+    height:14px;
+    fill:none;
+    stroke:white;
+    stroke-width:2.3;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.scrollArrowUp{
+    top:-15px;
+}
+
+.scrollArrowDown{
+    bottom:-15px;
+}
+
+.scrollArrowBtn.hidden{
+    display:none;
+}
+
+#saveChapter{
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+}
+
+#saveChapter:disabled{
+    background:#374151;
+    color:#9ca3af;
+    cursor:not-allowed;
+}
+.chapterBar{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:3px 6px 4px 14px;
+}
+
+.chapterTitle{
+    font-size:12px;
+    font-weight:bold;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    width:100%;
+    text-align:left;
+    transition:transform .2s;
+}
+.chapterBar:hover .chapterTitle{
+    transform:scale(1.25);
+    transform-origin:left;
+}
+
+.chapterChecks{
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns:var(--dayWidth);
+    width:100%;
+    margin-top:4px;
+    justify-items:center;
+    align-items:center;
+}
+
+.chapterChecks input{
+    width:16px;
+    height:16px;
+    cursor:pointer;
+    margin:0 0 0 -25px;
+}
+/* CHAPTER DASHBOARD */
+
+#chapterPanel{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    height:320px;
+    background:#1f2937;
+    border-top:2px solid #374151;
+    display:flex;
+    flex-direction:column;
+    z-index:20;
+    transform:translateY(0);
+    transition:transform .35s ease;
+}
+
+/* Slides down instead of display:none, so it eases in/out */
+
+#chapterPanel.hidden{
+    display:flex;
+    transform:translateY(100%);
+    pointer-events:none;
+}
+
+/* TOP */
+
+.chapterTopBar{
+    height:55px;
+    padding:12px 18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid #374151;
+}
+
+.chapterTopBar h2{
+    font-size:20px;
+    color:white;
+}
+
+#panelSubject{
+    color:#9ca3af;
+    font-size:13px;
+}
+
+/* BUTTONS */
+
+.chapterButtons{
+    display:flex;
+    gap:10px;
+}
+
+.chapterButtons button{
+    padding:7px 14px;
+    border:none;
+    border-radius:7px;
+    cursor:pointer;
+    background:#374151;
+    color:white;
+    transition:.2s;
+}
+
+.chapterButtons button:hover{
+    background:#4b5563;
+}
+
+/* BODY */
+
+.chapterBody{
+    flex:1;
+    display:grid;
+    /* Left/right columns are drag-resizable and shared globally (not per chapter); center fills the rest with a min floor */
+    grid-template-columns:
+        var(--chLeftW,320px) 6px minmax(220px,1fr) 6px var(--chRightW,320px);
+}
+
+/* COLUMN RESIZE HANDLES */
+
+.colResizer{
+    cursor:col-resize;
+    position:relative;
+    background:transparent;
+}
+
+.colResizer::before{
+    content:"";
+    position:absolute;
+    top:0;
+    bottom:0;
+    left:2px;
+    width:2px;
+    background:#374151;
+    transition:background .15s;
+}
+
+.colResizer:hover::before,
+body.resizingCols .colResizer::before{
+    background:#6b7280;
+}
+
+body.resizingCols{
+    cursor:col-resize;
+    user-select:none;
+}
+
+/* LEFT */
+
+.chapterLeft{
+    padding:16px;
+    border-right:1px solid #374151;
+    overflow:auto;
+}
+
+/* CENTER */
+
+.chapterCenter{
+    position:relative;
+    padding:16px;
+    border-right:1px solid #374151;
+    display:flex;
+    flex-direction:column;
+}
+
+/* Heading spacing shared by both themes; neon adds a pink glow (see NEON THEME section) */
+.chapterLeft h3,
+.chapterCenter h3,
+.chapterRight h3{
+    margin-bottom:8px;
+}
+
+/* RIGHT */
+
+.chapterRight{
+    padding:16px;
+    overflow:auto;
+}
+
+/* MINI TIMELINE */
+
+#miniTimelineWrap{
+    position:relative;
+    width:100%;
+    margin-top:18px;
+}
+
+#chapterMiniTimeline{
+    display:flex;
+    gap:8px;
+    justify-content:flex-start;
+    align-items:flex-start;
+    width:100%;
+    overflow-x:auto;
+    /* Right padding reserves the summary cards' width (140px + 15px offset + clearance) so the last card stops short of them */
+    padding:10px 165px 10px 4px;
+    min-height:100px;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+}
+
+#chapterMiniTimeline::-webkit-scrollbar{
+    display:none;
+}
+
+/* Fades the scrollable edge instead of hard-clipping; applied only on sides with hidden cards. Right fade ends at 155px (where summary cards start) */
+
+#chapterMiniTimeline.fadeRight{
+    -webkit-mask-image:linear-gradient(to right,#000 0%,#000 calc(100% - 195px),transparent calc(100% - 155px));
+    mask-image:linear-gradient(to right,#000 0%,#000 calc(100% - 195px),transparent calc(100% - 155px));
+}
+
+#chapterMiniTimeline.fadeLeft{
+    -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 36px,#000 100%);
+    mask-image:linear-gradient(to right,transparent 0%,#000 36px,#000 100%);
+}
+
+#chapterMiniTimeline.fadeLeft.fadeRight{
+    -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 36px,#000 calc(100% - 195px),transparent calc(100% - 155px));
+    mask-image:linear-gradient(to right,transparent 0%,#000 36px,#000 calc(100% - 195px),transparent calc(100% - 155px));
+}
+
+/* Same look as the Add Chapter scroll arrows; shown via JS only when content is hidden on that side */
+
+.miniScrollBtn{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    border:none;
+    background:#374151;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    cursor:pointer;
+    z-index:5;
+    box-shadow:0 2px 6px rgba(0,0,0,.4);
+    transition:background .2s;
+}
+
+.miniScrollBtn:hover{
+    background:#4b5563;
+}
+
+.miniScrollBtn svg{
+    width:14px;
+    height:14px;
+    fill:none;
+    stroke:white;
+    stroke-width:2.3;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+}
+
+.miniScrollBtnLeft{
+    left:-4px;
+}
+
+.miniScrollBtnRight{
+    right:151px;
+}
+
+.miniScrollBtn.hidden{
+    display:none;
+}
+
+/* One Day Card — level colour set inline per level in JS; box-sizing keeps the border from growing the fixed width */
+
+.miniDay{
+    width:48px;
+    box-sizing:border-box;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    padding:8px 4px;
+    border-radius:10px;
+    border:1.5px solid transparent;
+}
+
+/* Day Number */
+
+.miniNumber{
+    font-size:14px;
+    color:white;
+    font-weight:600;
+}
+
+/* Weekday */
+
+.miniWeek{
+    font-size:12px;
+    color:#9ca3af;
+}
+
+/* Progress Dot (legacy, unused) */
+
+.miniDot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:white;
+}
+
+/* Completion Indicator — mirrors chapter.progress, read-only */
+
+.miniCircle{
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    border:2px solid #9ca3af;
+    background:transparent;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:700;
+    color:white;
+    flex-shrink:0;
+}
+
+.miniCircleDone{
+    background:#22c55e;
+    border-color:#22c55e;
+}
+/* SUMMARY */
+
+#chapterSummary{
+    margin-top:15px;
+    line-height:26px;
+    font-size:15px;
+    color:#d1d5db;
+}
+/* SUMMARY CARDS */
+
+#chapterSummary{
+    position:absolute;
+    right:15px;
+    top:15px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.summaryCard{
+    width:140px;
+    height:100px;
+    border-radius:12px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    background:#111827;
+    border:2px solid #374151;
+}
+
+.completedCard{
+    border-color:#22c55e;
+}
+
+.leftCard{
+    border-color:#c63737;
+}
+
+.summaryNumber{
+    font-size:34px;
+    font-weight:bold;
+    color:white;
+}
+
+.summaryLabel{
+    margin-top:6px;
+    font-size:14px;
+    color:#d1d5db;
+    text-transform:uppercase;
+}
+/* Sunday */
+
+.miniSunday{
+    background:#eab308 !important;
+}
+
+/* LEVEL DISTRIBUTION LEGEND — read-only summary mirroring chapter.levels */
+
+#chapterLevelsSummary{
+    margin-top:6px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:18px;
+    font-size:14px;
+    color:#d1d5db;
+    /* Reserves room equal to the summary cards' column so wrapped items don't run underneath them */
+    padding-right:180px;
+}
+
+.levelSummaryHeading{
+    font-weight:600;
+    color:white;
+}
+
+.levelSummaryItem{
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.levelSummaryItem b{
+    color:white;
+}
+
+/* EDITABLE NOTEPAD BOXES (Description + Additional Notes) */
+
+.editableBox{
+    height:210px;
+    margin-top:8px;
+    padding:10px 12px;
+    border:1px solid #374151;
+    border-radius:8px;
+    background:#111827;
+    color:#e5e7eb;
+    font-size:14px;
+    line-height:1.5;
+    overflow-y:auto;
+    white-space:pre-wrap;
+    word-wrap:break-word;
+    cursor:text;
+    outline:none;
+    transition:.15s;
+}
+
+.editableBox:hover{
+    border-color:#4b5563;
+}
+
+.editableBox:focus{
+    border-color:#2563eb;
+    background:#0d1420;
+}
+
+.editableBox:empty::before{
+    content:attr(data-placeholder);
+    color:#6b7280;
+    pointer-events:none;
+}
+.levelInputsRow{
+    display:flex;
+    gap:10px;
+}
+
+.levelInputGroup{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    padding:10px 8px;
+    border:1px solid #374151;
+    border-radius:8px;
+    background:#111827;
+}
+
+.levelInputGroup input{
+    width:100%;
+    padding:6px;
+    text-align:center;
+    border-radius:6px;
+    border:1px solid #4b5563;
+    background:#0d1420;
+    color:white;
+}
+
+.levelInputGroup label{
+    font-size:12px;
+    color:#9ca3af;
+}
+
+.levelDot{
+    width:14px;
+    height:14px;
+    border-radius:50%;
+}
+
+.theoryDot{
+    background:#eab308;
+}
+
+.mainsDot{
+    background:#00FFF7;
+}
+
+.advanceDot{
+    background:#a855f7;
+}
+
+.levelsPreview{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    padding:10px;
+    min-height:44px;
+    border:1px solid #374151;
+    border-radius:8px;
+    background:#111827;
+}
+
+.levelBox{
+    width:28px;
+    height:28px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:.15s;
+}
+
+.levelBox:hover{
+    transform:scale(1.1);
+}
+
+.levelBox.theory{
+    background:#eab308;
+}
+
+.levelBox.mains{
+    background:#00FFF7;
+}
+
+.levelBox.advance{
+    background:#a855f7;
+}
+
+.editFormHint{
+    color:#9ca3af;
+    font-size:13px;
+}
+
+.editModalButtons{
+    display:flex;
+    gap:10px;
+    margin-top:4px;
+}
+
+.editModalButtons button{
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    color:white;
+    cursor:pointer;
+    transition:.2s;
+}
+
+#cancelEditChapter{
+    background:#374151;
+}
+
+#cancelEditChapter:hover{
+    background:#4b5563;
+}
+
+#saveEditChapter{
+    background:#2563eb;
+}
+
+#saveEditChapter:hover:not(:disabled){
+    background:#1d4ed8;
+}
+
+#saveEditChapter:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+}
+
+#editModal{
+    display:flex;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+}
+
+#editModal:not(.hidden){
+    opacity:1;
+    pointer-events:auto;
+}
+
+#editModal .modalContent{
+    transform:scale(.94) translateY(14px);
+    transition:transform .25s ease;
+}
+
+#editModal:not(.hidden) .modalContent{
+    transform:scale(1) translateY(0);
+}
+
+#dateRangeModal{
+    display:flex;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+}
+
+#dateRangeModal:not(.hidden){
+    opacity:1;
+    pointer-events:auto;
+}
+
+#dateRangeModal .modalContent{
+    transform:scale(.94) translateY(14px);
+    transition:transform .25s ease;
+}
+
+#dateRangeModal:not(.hidden) .modalContent{
+    transform:scale(1) translateY(0);
+}
+
+#rangeStartDate,
+#rangeEndDate{
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #4b5563;
+    background:#111827;
+    color:white;
+    color-scheme:dark;
+}
+
+#cancelDateRange{
+    background:#374151;
+}
+
+#cancelDateRange:hover{
+    background:#4b5563;
+}
+
+#saveDateRange{
+    background:#2563eb;
+}
+
+#saveDateRange:hover:not(:disabled){
+    background:#1d4ed8;
+}
+
+#saveDateRange:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+}
+
+#exportModal,
+#importModal,
+#resetModal{
+    display:flex;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+}
+
+#exportModal:not(.hidden),
+#importModal:not(.hidden),
+#resetModal:not(.hidden){
+    opacity:1;
+    pointer-events:auto;
+}
+
+#exportModal .modalContent,
+#importModal .modalContent,
+#resetModal .modalContent{
+    transform:scale(.94) translateY(14px);
+    transition:transform .25s ease;
+}
+
+#exportModal:not(.hidden) .modalContent,
+#importModal:not(.hidden) .modalContent,
+#resetModal:not(.hidden) .modalContent{
+    transform:scale(1) translateY(0);
+}
+
+#confirmExport,
+#confirmImport{
+    background:#2563eb;
+}
+
+#confirmExport:hover,
+#confirmImport:hover{
+    background:#1d4ed8;
+}
+
+#cancelExport,
+#cancelImport,
+#cancelReset{
+    background:#374151;
+}
+
+#cancelExport:hover,
+#cancelImport:hover,
+#cancelReset:hover{
+    background:#4b5563;
+}
+
+/* HOLD-TO-CONFIRM DELETE — press-and-hold fills an overlay over 1.5s (timed in script.js) to prevent accidental clicks; releasing early cancels */
+
+.holdToConfirmBtn{
+    position:relative;
+    overflow:hidden;
+    -webkit-user-select:none;
+    user-select:none;
+    touch-action:none;
+}
+
+#confirmReset{
+    background:#b91c1c;
+}
+
+#confirmReset:hover{
+    background:#991b1b;
+}
+
+.holdToConfirmFill{
+    position:absolute;
+    inset:0;
+    width:0%;
+    background:#7f1d1d;
+    z-index:0;
+}
+
+.holdToConfirmLabel{
+    position:relative;
+    z-index:1;
+    pointer-events:none;
+}
+
+.modalContent.editModalContent{
+    width:640px;
+}
+
+.editFormGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:28px;
+}
+
+.editFormCol{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.editModalButtons button{
+    flex:1;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.editModalButtons button:hover:not(:disabled){
+    transform:translateY(-1px);
+}
+
+.editModalButtons button:active:not(:disabled){
+    transform:translateY(0) scale(.97);
+}
+
+#cancelEditChapter{
+    background:#374151;
+}
+
+#cancelEditChapter:hover{
+    background:#4b5563;
+}
+
+#saveEditChapter{
+    background:#2563eb;
+}
+
+#saveEditChapter:hover:not(:disabled){
+    background:#1d4ed8;
+}
+
+#saveEditChapter:disabled{
+    opacity:.4;
+    cursor:not-allowed;
+}
+
+/* Matches #chapterModalBox input/select styling from the Add Chapter popup */
+
+#editChapterName,
+#editChapterSubject,
+#editChapterStartDate,
+#editChapterDuration,
+#editChapterShade{
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #4b5563;
+    background:#111827;
+    color:white;
+}
+
+/* Dark native date-picker icon instead of a bright white square */
+#editChapterStartDate,
+#chapterStartDate{
+    color-scheme:dark;
+}
+
+/* CHAPTER GROUP BORDER — wraps chapters split across a Sunday; outset/border-width stay fixed px at every zoom, unlike inline left/width */
+
+.chapterGroupBorder{
+    position:absolute;
+    top:var(--barTop);
+    height:var(--barHeight);
+    border:3px solid #fbbf24;
+    border-radius:4px;
+    box-sizing:border-box;
+    pointer-events:none;
+    transition:transform .2s;
+    z-index:2;
+}
+
+.chapterGroupBorder.activeChapter{
+    top:calc(var(--barTop) - 1px);
+    height:calc(var(--barHeight) + 2px);
+}
+
+.chapterGroupBorder.hovered{
+    transform:translateY(-2px);
+}
+
+/* NEON THEME — active only when body has .neonMode (toggled in script.js). Retune via --accentPink/--accentPurple/--bg* in :root, or the colours below */
+
+/* Smooths the on/off toggle in one shot; low specificity so elements with their own transition (buttons etc.) keep using it */
+*{
+    transition:background-color .2s, border-color .2s,
+               box-shadow .2s, color .2s, text-shadow .2s;
+}
+
+body.neonMode{
+    background:var(--bgPage);
+}
+
+body.neonMode #topHeader{
+    background:var(--bgHeader);
+    border-bottom:1px solid rgba(168,85,247,.25);
+}
+
+body.neonMode .titleArea h1{
+    width:fit-content;
+    background:linear-gradient(90deg, var(--accentPink), var(--accentPurple));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow:0 0 18px rgba(236,72,153,.55);
+}
+
+body.neonMode .titleArea p{
+    color:#c084fc;
+}
+
+body.neonMode .headerButtons button{
+    border:1px solid rgba(168,85,247,.55);
+    background:#1f1733;
+    box-shadow:0 0 10px rgba(168,85,247,.35);
+}
+
+body.neonMode .headerButtons button:hover{
+    background:#2a2147;
+    box-shadow:0 0 16px rgba(168,85,247,.6);
+}
+
+/* Active toggle buttons get the neon glow treatment too */
+
+body.neonMode .iconToggleBtn.active{
+    background:linear-gradient(90deg, var(--accentPink), var(--accentPurple));
+    box-shadow:0 0 10px rgba(236,72,153,.6);
+}
+
+body.neonMode #leftSidebar{
+    background:var(--bgSidebar);
+    border-right:1px solid rgba(168,85,247,.25);
+}
+
+body.neonMode::before{
+    background:var(--bgSidebar);
+    border-right:1px solid rgba(168,85,247,.25);
+}
+
+body.neonMode .physics{
+    border:1px solid rgba(239,68,68,.6);
+    box-shadow:0 0 16px #ef4444aa;
+}
+
+body.neonMode .chemistry{
+    border:1px solid rgba(34,197,94,.6);
+    box-shadow:0 0 16px #22c55eaa;
+}
+
+body.neonMode .maths{
+    border:1px solid rgba(59,130,246,.6);
+    box-shadow:0 0 16px #3b82f6aa;
+}
+
+body.neonMode #plannerArea{
+    background:var(--bgPlanner);
+}
+
+body.neonMode #timeline{
+    background-color:var(--bgTimeline);
+    background-image:
+        repeating-linear-gradient(
+            to right,
+            transparent 0px,
+            transparent 41px,
+            rgba(168,85,247,0.1) 41px,
+            rgba(168,85,247,0.1) 42px
+        ),
+        url("images/timeline-wallpaper.png");
+}
+
+body.neonMode.wallpaperHidden #timeline{
+    background-image:
+        repeating-linear-gradient(
+            to right,
+            transparent 0px,
+            transparent 41px,
+            rgba(168,85,247,0.1) 41px,
+            rgba(168,85,247,0.1) 42px
+        );
+}
+
+body.neonMode .monthLabel{
+    box-shadow:0 2px 6px rgba(0,0,0,.35), 0 0 12px rgba(124,58,237,.6);
+}
+
+body.neonMode #dateHeader div{
+    box-shadow:0 2px 5px rgba(0,0,0,.3), 0 0 8px rgba(250,204,21,.45);
+}
+
+body.neonMode #weekdayHeader div:nth-child(odd){
+    box-shadow:0 0 8px rgba(56,189,248,.55);
+}
+
+body.neonMode #weekdayHeader div:nth-child(even){
+    box-shadow:0 0 8px rgba(244,114,182,.55);
+}
+
+body.neonMode #dateHeader .todayCell{
+    box-shadow:0 0 14px #3b82f6;
+}
+
+/* Tinted fill + neon outline, coloured per-bar via --barGlow (set in script.js); tweak the 72%/10px/.35/65% values to adjust */
+body.neonMode .chapterBar{
+    background:color-mix(in srgb, var(--barGlow,#374151) 72%, #10182a 28%);
+    border:1.5px solid var(--barGlow,transparent);
+    box-shadow:0 2px 8px rgba(0,0,0,.3), 0 0 10px color-mix(in srgb, var(--barGlow,transparent) 65%, transparent);
+}
+
+body.neonMode .chapterBar:hover,
+body.neonMode .chapterBar.hovered{
+    box-shadow:0 6px 14px rgba(0,0,0,.35), 0 0 18px var(--barGlow,#facc15cc);
+}
+
+body.neonMode #closePanel{
+    border:1px solid rgba(236,72,153,.55);
+    background:#241627;
+    box-shadow:0 0 10px rgba(236,72,153,.3);
+}
+
+body.neonMode #closePanel:hover{
+    background:#33202f;
+    box-shadow:0 0 16px rgba(236,72,153,.55);
+}
+
+/* Subject-tinted panel bg — classes applied to #chapterPanel via JS (openChapter); only visible here in neon mode */
+body.neonMode #chapterPanel.subjectPhysics{
+    background:#2a1416;
+    border-top:2px solid #ef4444;
+    box-shadow:0 -6px 22px rgba(239,68,68,.3);
+}
+
+body.neonMode #chapterPanel.subjectChemistry{
+    background:#122a1b;
+    border-top:2px solid #22c55e;
+    box-shadow:0 -6px 22px rgba(34,197,94,.3);
+}
+
+body.neonMode #chapterPanel.subjectMaths{
+    background:#101f36;
+    border-top:2px solid #3b82f6;
+    box-shadow:0 -6px 22px rgba(59,130,246,.3);
+}
+
+body.neonMode .chapterButtons button{
+    border:1px solid rgba(236,72,153,.55);
+    background:#241627;
+    box-shadow:0 0 10px rgba(236,72,153,.3);
+}
+
+body.neonMode .chapterButtons button:hover{
+    background:#33202f;
+    box-shadow:0 0 16px rgba(236,72,153,.55);
+}
+
+body.neonMode .chapterLeft h3,
+body.neonMode .chapterCenter h3,
+body.neonMode .chapterRight h3{
+    color:var(--accentPink);
+    text-shadow:0 0 8px rgba(236,72,153,.5);
+}
+
+body.neonMode .completedCard{
+    box-shadow:0 0 14px rgba(34,197,94,.45);
+}
+
+body.neonMode .leftCard{
+    box-shadow:0 0 14px rgba(198,55,55,.45);
+}
+
+body.neonMode .editableBox:focus{
+    border-color:var(--accentPink);
+    box-shadow:0 0 12px rgba(236,72,153,.35);
+}
+
+/* Description/Notes boxes use a darker shade of the subject colour (panel bg above is the lighter tint); text stays shared light grey */
+body.neonMode #chapterPanel.subjectPhysics .editableBox{
+    background:#1c0d0e;
+    border-color:rgba(239,68,68,.35);
+}
+
+body.neonMode #chapterPanel.subjectChemistry .editableBox{
+    background:#0c1c12;
+    border-color:rgba(34,197,94,.35);
+}
+
+body.neonMode #chapterPanel.subjectMaths .editableBox{
+    background:#0a1526;
+    border-color:rgba(59,130,246,.35);
+}
